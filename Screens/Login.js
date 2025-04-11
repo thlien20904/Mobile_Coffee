@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons, FontAwesome, Entypo, AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Google from "expo-auth-session/providers/google";
 import * as Facebook from "expo-auth-session/providers/facebook";
 import { initializeApp } from "firebase/app";
@@ -39,10 +40,9 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const navigation = useNavigation();
-  const [errorMessage, setErrorMessage] = useState(""); // Lưu thông báo lỗi
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = async () => {
-    // Xóa thông báo lỗi cũ
     setErrorMessage("");
 
     if (!username || !password) {
@@ -51,7 +51,7 @@ export default function Login() {
     }
 
     try {
-      const API_URL = "https://d54b-171-251-212-25.ngrok-free.app/api/login";
+      const API_URL = "https://9883-171-251-212-26.ngrok-free.app/api/login";
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -69,18 +69,25 @@ export default function Login() {
       }
 
       if (response.status === 200) {
-        setErrorMessage(""); // Xóa lỗi nếu đăng nhập thành công
-        navigation.navigate("Home");
+        setErrorMessage("");
+        // Lưu trạng thái đăng nhập và thông tin người dùng
+        await AsyncStorage.setItem("isLoggedIn", "true");
+        await AsyncStorage.setItem(
+          "userInfo",
+          JSON.stringify({
+            username,
+            avatarUrl: data.avatarUrl || "", // Giả sử API trả về avatarUrl
+          })
+        );
+        navigation.navigate("Main");
       } else {
-        // Trường hợp khi server trả về lỗi
         const msg = `❌ Đăng nhập thất bại (${response.status}):\n${
           data.error || "Lỗi không xác định"
         }`;
-        setErrorMessage(msg); // 👈 Cho hiển thị trên UI
+        setErrorMessage(msg);
         Alert.alert("Lỗi đăng nhập", msg);
       }
     } catch (error) {
-      // Xử lý lỗi kết nối API
       setErrorMessage(`Lỗi kết nối: ${error.message}`);
       Alert.alert("Lỗi kết nối", `Lỗi kết nối API: ${error.message}`);
     }
@@ -96,9 +103,19 @@ export default function Login() {
       const { id_token } = response.params;
       const credential = GoogleAuthProvider.credential(id_token);
       signInWithCredential(auth, credential)
-        .then(() => {
+        .then(async (userCredential) => {
+          const user = userCredential.user;
           Alert.alert("Success", "Signed in with Google!");
-          navigation.navigate("Home");
+          // Lưu trạng thái đăng nhập và thông tin người dùng
+          await AsyncStorage.setItem("isLoggedIn", "true");
+          await AsyncStorage.setItem(
+            "userInfo",
+            JSON.stringify({
+              username: user.displayName,
+              avatarUrl: user.photoURL || "",
+            })
+          );
+          navigation.navigate("Main");
         })
         .catch(() => Alert.alert("Error", "Google sign-in failed!"));
     }
@@ -114,9 +131,19 @@ export default function Login() {
       const { access_token } = fbResponse.params;
       const credential = FacebookAuthProvider.credential(access_token);
       signInWithCredential(auth, credential)
-        .then(() => {
+        .then(async (userCredential) => {
+          const user = userCredential.user;
           Alert.alert("Success", "Signed in with Facebook!");
-          navigation.navigate("Home");
+          // Lưu trạng thái đăng nhập và thông tin người dùng
+          await AsyncStorage.setItem("isLoggedIn", "true");
+          await AsyncStorage.setItem(
+            "userInfo",
+            JSON.stringify({
+              username: user.displayName,
+              avatarUrl: user.photoURL || "",
+            })
+          );
+          navigation.navigate("Main");
         })
         .catch(() => Alert.alert("Error", "Facebook sign-in failed!"));
     }
@@ -126,7 +153,7 @@ export default function Login() {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate("Forget")} // Điều hướng tới màn hình ForgetPassword
+        onPress={() => navigation.navigate("Forget")}
       >
         <Ionicons name="arrow-back" size={40} color="#333" />
         <Text style={styles.title}>Sign In</Text>
@@ -181,7 +208,6 @@ export default function Login() {
         <Text style={styles.signInText}>Sign In</Text>
       </TouchableOpacity>
 
-      {/* Hiển thị lỗi nếu có */}
       {errorMessage ? (
         <View style={{ marginTop: 10, paddingHorizontal: 20 }}>
           <Text

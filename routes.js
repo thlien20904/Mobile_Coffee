@@ -1,6 +1,6 @@
 const express = require("express");
 const { connectDB, sql } = require("./db");
-const cors = require("cors"); // Thêm cors
+const cors = require("cors");
 
 const router = express.Router();
 
@@ -95,6 +95,32 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// API lấy danh sách danh mục
+router.get("/categories", async (req, res) => {
+  console.log("Fetching categories...");
+
+  try {
+    const pool = await connectDB();
+    const result = await pool.request().query(`
+      SELECT 
+        CategoryId AS id,
+        CategoryName AS name
+      FROM Category
+    `);
+
+    if (result.recordset.length === 0) {
+      console.log("No categories found");
+      return res.status(404).json({ error: "Không tìm thấy danh mục nào." });
+    }
+
+    console.log("Categories fetched successfully:", result.recordset);
+    res.status(200).json(result.recordset);
+  } catch (err) {
+    console.error("Error fetching categories:", err);
+    res.status(500).json({ error: "Lỗi khi lấy danh sách danh mục." });
+  }
+});
+
 // API lấy danh sách sản phẩm
 router.get("/products", async (req, res) => {
   console.log("Fetching products...");
@@ -102,27 +128,28 @@ router.get("/products", async (req, res) => {
   try {
     const pool = await connectDB();
     const result = await pool.request().query(`
-        SELECT 
-          FoodId AS id,
-          FoodName AS name,
-          Price AS price,
-          DiscountPrice AS discountPrice,
-          ImageURL AS image,
-          CreatedDate AS createdDate,
-          CASE 
-            WHEN DATEDIFF(DAY, CreatedDate, GETDATE()) <= 7 THEN 1 
-            ELSE 0 
-          END AS isNew
-        FROM Food
-        WHERE Status = 1
-      `);
+      SELECT 
+        FoodId AS id,
+        FoodName AS name,
+        Price AS price,
+        DiscountPrice AS discountPrice,
+        CONCAT('https://9883-171-251-212-26.ngrok-free.app', ImageURL) AS image,
+        CreatedDate AS createdDate,
+        CategoryId AS categoryId, -- Thêm categoryId
+        CASE 
+          WHEN DATEDIFF(DAY, CreatedDate, GETDATE()) <= 7 THEN 1 
+          ELSE 0 
+        END AS isNew
+      FROM Food
+      WHERE Status = 1
+    `);
 
     if (result.recordset.length === 0) {
       console.log("No products found with Status = 1");
       return res.status(404).json({ error: "Không tìm thấy sản phẩm nào." });
     }
 
-    console.log("Products fetched successfully:", result.recordset.length);
+    console.log("Products fetched successfully:", result.recordset);
     res.status(200).json(result.recordset);
   } catch (err) {
     console.error("Error fetching products:", err);

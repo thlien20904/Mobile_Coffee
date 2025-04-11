@@ -5,8 +5,20 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors()); // Cho phép tất cả origin
+// Cấu hình CORS
+app.use(
+  cors({
+    origin: "*", // Cho phép tất cả origin
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
+
+// Phục vụ file tĩnh từ thư mục "images"
+app.use("/images", express.static("images"));
+
 app.use("/api", routes);
 
 const port = 3000;
@@ -23,6 +35,6 @@ const port = 3000;
       "❌ Không thể khởi động server do lỗi kết nối SQL Server:",
       err.message
     );
-    process.exit(1); // Dừng quá trình nếu không thể kết nối DB
+    process.exit(1);
   }
 })();

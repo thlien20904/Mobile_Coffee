@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FEF8EF", // Màu nền chính, khớp với ảnh
+    backgroundColor: "#FEF8EF",
   },
   header: {
     flexDirection: "row",
@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#FFF", // Thêm background trắng cho header
+    backgroundColor: "#FFF",
     borderBottomWidth: 1,
     borderBottomColor: "#EEEEEE",
   },
@@ -33,9 +33,33 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   greeting: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  userContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  userName: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#000",
+  },
+  logoutButton: {
+    padding: 8,
+  },
+  logoutText: {
+    fontSize: 14,
+    color: "#E57905",
+    fontWeight: "bold",
   },
   ticketButton: {
     marginRight: 16,
@@ -80,11 +104,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 8,
-    textAlign: "left", // Căn trái thay vì căn giữa
+    textAlign: "left",
   },
   loginSubtitle: {
     fontSize: 14,
-    textAlign: "left", // Căn trái
+    textAlign: "left",
     lineHeight: 20,
     marginBottom: 20,
     color: "#777",
@@ -114,6 +138,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#E57905",
   },
+  searchContainer: {
+    marginHorizontal: 16,
+    marginVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  searchInput: {
+    flex: 1,
+    padding: 10,
+    fontSize: 16,
+    color: "#000",
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  menuContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  menuItem: {
+    alignItems: "center",
+    width: "16%",
+  },
+  menuText: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#000",
+  },
   serviceContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -139,17 +200,17 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   promotionContainer: {
-    marginHorizontal: 16, // Giảm padding để ảnh rộng hơn
+    marginHorizontal: 16,
     marginVertical: 10,
-    alignItems: "center", // Căn giữa carousel
+    alignItems: "center",
   },
   promotionBanner: {
     width: "100%",
-    height: 150, // Giảm chiều cao để phù hợp với tỷ lệ ảnh
+    height: 150,
     borderRadius: 12,
-    backgroundColor: "transparent", // Bỏ background màu xanh
-    padding: 0, // Bỏ padding để ảnh full khung
-    overflow: "hidden", // Đảm bảo ảnh không bị tràn ra ngoài
+    backgroundColor: "transparent",
+    padding: 0,
+    overflow: "hidden",
   },
   paginationDots: {
     flexDirection: "row",
@@ -253,28 +314,6 @@ const styles = StyleSheet.create({
     fontWeight: "normal",
     color: "#777777",
   },
-  searchContainer: {
-    marginHorizontal: 16,
-    marginVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  searchInput: {
-    flex: 1,
-    padding: 10,
-    fontSize: 16,
-    color: "#000",
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
   productSection: {
     marginHorizontal: 16,
     marginVertical: 10,
@@ -283,7 +322,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   productCard: {
-    width: "48%", // 2 cột
+    width: "48%",
     backgroundColor: "#FFF",
     borderRadius: 10,
     padding: 10,
@@ -312,7 +351,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 120,
     borderRadius: 8,
-    resizeMode: "cover",
   },
   productName: {
     fontSize: 14,
@@ -336,27 +374,6 @@ const styles = StyleSheet.create({
     height: 30,
     justifyContent: "center",
     alignItems: "center",
-  },
-  bottomNavigation: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    borderTopWidth: 1,
-    borderTopColor: "#EEEEEE",
-    backgroundColor: "white",
-    paddingVertical: 8,
-  },
-  navItem: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navText: {
-    fontSize: 12,
-    marginTop: 4,
-    color: "#777777",
-  },
-  activeNavText: {
-    color: "#F37934",
-    fontWeight: "500",
   },
 });
 

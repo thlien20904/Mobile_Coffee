@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   Alert,
-  ScrollView, // Thêm ScrollView vì form dài hơn
+  ScrollView,
 } from "react-native";
 import {
   Ionicons,
@@ -26,6 +26,7 @@ import {
   FacebookAuthProvider,
 } from "firebase/auth";
 import styles from "../styles/Register";
+
 // Cấu hình Firebase
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
@@ -44,12 +45,12 @@ export default function SignUp() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState(""); // Thêm state cho full name
-  const [phone, setPhone] = useState(""); // Thêm state cho phone
-  const [address, setAddress] = useState(""); // Thêm state cho address
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const navigation = useNavigation();
 
-  // Đăng ký tài khoản thường thông qua API của bạn
+  // Đăng ký tài khoản thông qua API
   const handleSignUp = async () => {
     if (!username || !email || !password || !fullName || !phone || !address) {
       Alert.alert("Error", "Please fill all fields!");
@@ -57,7 +58,7 @@ export default function SignUp() {
     }
 
     try {
-      const API_URL = "https://d54b-171-251-212-25.ngrok-free.app/api/register"; // Cập nhật URL đúng của bạn
+      const API_URL = "https://9883-171-251-212-26.ngrok-free.app/api/register";
 
       const response = await fetch(API_URL, {
         method: "POST",
@@ -66,21 +67,21 @@ export default function SignUp() {
           username,
           email,
           password,
-          fullName, // Thêm fullName vào request
-          phone, // Thêm phone vào request
-          address, // Thêm address vào request
+          fullName,
+          phone,
+          address,
         }),
       });
 
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Account created successfully!");
-        navigation.navigate("Login");
+        navigation.navigate("Login"); // Đúng, điều hướng đến Login
       } else {
-        Alert.alert("Error", data.message || "Sign up failed!");
+        Alert.alert("Error", data.error || "Sign up failed!");
       }
     } catch (error) {
-      Alert.alert("Error", "Something went wrong!");
+      Alert.alert("Error", "Something went wrong: " + error.message);
     }
   };
 
@@ -89,14 +90,14 @@ export default function SignUp() {
     clientId: "YOUR_GOOGLE_CLIENT_ID",
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (response?.type === "success") {
       const { id_token } = response.params;
       const credential = GoogleAuthProvider.credential(id_token);
       signInWithCredential(auth, credential)
         .then(() => {
           Alert.alert("Success", "Signed in with Google!");
-          navigation.navigate("Home");
+          navigation.navigate("Main"); // Sửa từ "Home" thành "Main"
         })
         .catch(() => Alert.alert("Error", "Google sign-in failed!"));
     }
@@ -107,14 +108,14 @@ export default function SignUp() {
     clientId: "YOUR_FACEBOOK_APP_ID",
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fbResponse?.type === "success") {
       const { access_token } = fbResponse.params;
       const credential = FacebookAuthProvider.credential(access_token);
       signInWithCredential(auth, credential)
         .then(() => {
           Alert.alert("Success", "Signed in with Facebook!");
-          navigation.navigate("Home");
+          navigation.navigate("Main"); // Sửa từ "Home" thành "Main"
         })
         .catch(() => Alert.alert("Error", "Facebook sign-in failed!"));
     }
@@ -188,7 +189,6 @@ export default function SignUp() {
           </TouchableOpacity>
         </View>
 
-        {/* Thêm trường Full Name */}
         <View style={styles.inputContainer}>
           <Ionicons name="person" size={20} color="#777" style={styles.icon} />
           <TextInput
@@ -200,7 +200,6 @@ export default function SignUp() {
           />
         </View>
 
-        {/* Thêm trường Phone */}
         <View style={styles.inputContainer}>
           <Feather name="phone" size={20} color="#777" style={styles.icon} />
           <TextInput
@@ -213,7 +212,6 @@ export default function SignUp() {
           />
         </View>
 
-        {/* Thêm trường Address */}
         <View style={styles.inputContainer}>
           <Entypo
             name="location-pin"

@@ -19,6 +19,7 @@ import {
   Feather,
 } from "@expo/vector-icons";
 import Carousel from "react-native-snap-carousel";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../styles/Home";
 
 // Dữ liệu ảnh banner từ thư mục assets
@@ -30,89 +31,100 @@ const bannerImages = [
   require("../assets/banner4.png"),
 ];
 
-// Dữ liệu ảnh cho các ưu đãi đặc biệt (có thể thay bằng ảnh từ backend)
+// Dữ liệu ảnh cho các ưu đãi đặc biệt
 const offerImages = [
-  require("../assets/banner.png"), // Ảnh cho "Luôn Vui Tươi, Nhẹ Mới 30% + Freeship"
-  require("../assets/banner2.png"), // Ảnh cho "Deal Nhẹ Rộn Ràng, Chó Bạn Cờ"
-  require("../assets/banner3.png"), // Ảnh cho "Cập Nhật Từ Nhà Tét Này, Mình Phê Nhé!"
+  require("../assets/banner.png"),
+  require("../assets/banner2.png"),
+  require("../assets/banner3.png"),
 ];
 
-// Dữ liệu giả (mock data) để hiển thị sản phẩm khi API không hoạt động
-const mockProducts = [
-  {
-    id: 1,
-    name: "A-Mẻ Classic",
-    price: 39000,
-    discountPrice: 39000,
-    image: "https://example.com/images/a-me-classic.jpg",
-    isNew: false,
-  },
-  {
-    id: 2,
-    name: "A-Mẻ Đào",
-    price: 55000,
-    discountPrice: 55000,
-    image: "https://example.com/images/a-me-dao.jpg",
-    isNew: true,
-  },
-  {
-    id: 3,
-    name: "A-Mẻ Mơ",
-    price: 55000,
-    discountPrice: 55000,
-    image: "https://example.com/images/a-me-mo.jpg",
-    isNew: false,
-  },
-  {
-    id: 4,
-    name: "A-Mẻ Quất",
-    price: 55000,
-    discountPrice: 55000,
-    image: "https://example.com/images/a-me-quat.jpg",
-    isNew: false,
-  },
-];
+// Ảnh mặc định (fallback) nếu không tải được ảnh từ URL
+const defaultImage = require("../assets/banner.png");
 
 // Lấy chiều rộng màn hình để set kích thước ảnh
 const { width: screenWidth } = Dimensions.get("window");
 
-export default function Home() {
-  const [activeSlide, setActiveSlide] = useState(0); // State để theo dõi ảnh hiện tại trong carousel
-  const [products, setProducts] = useState(mockProducts); // Dùng mock data tạm thời
-  const [errorMessage, setErrorMessage] = useState(""); // State để lưu thông báo lỗi
+export default function Home({ navigation, route }) {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
-  // Gọi API để lấy danh sách sản phẩm khi component mount
+  // Kiểm tra trạng thái đăng nhập và thông tin người dùng
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = await AsyncStorage.getItem("isLoggedIn");
+        const user = await AsyncStorage.getItem("userInfo");
+        console.log("isLoggedIn in Home:", loggedIn); // Debug
+        console.log("userInfo in Home:", user); // Debug
+        setIsLoggedIn(loggedIn === "true");
+        setUserInfo(user ? JSON.parse(user) : null);
+      } catch (error) {
+        console.error("Error checking login status:", error);
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
+  // Gọi API để lấy danh sách sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
-      const API_URL = "https://d54b-171-251-212-25.ngrok-free.app/api/products"; // Cập nhật URL
+      const API_URL = "https://9883-171-251-212-26.ngrok-free.app/api/products";
 
       try {
         const response = await fetch(API_URL, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
           },
         });
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await response.text();
+          console.log("Phản hồi từ server không phải JSON:", text);
+          throw new Error("Phản hồi từ server không phải JSON");
+        }
 
         if (!response.ok) {
           const errorData = await response.json();
           setErrorMessage(errorData.error || "Lỗi khi lấy danh sách sản phẩm.");
-          setProducts(mockProducts); // Dùng mock data nếu lỗi
+          setProducts([]);
           return;
         }
 
         const data = await response.json();
+        console.log("Products from API:", data);
         setProducts(data);
-        setErrorMessage(""); // Xóa thông báo lỗi nếu thành công
+        setErrorMessage("");
       } catch (error) {
-        console.error("Error fetching products:", error);
-        setErrorMessage("Lỗi khi lấy danh sách sản phẩm.");
-        setProducts(mockProducts); // Dùng mock data nếu lỗi
+        console.error("Error fetching products:", error.message);
+        setErrorMessage("Lỗi khi lấy danh sách sản phẩm: " + error.message);
+        setProducts([]);
       }
     };
 
     fetchProducts();
   }, []);
+
+  // Hàm đăng xuất
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("isLoggedIn");
+      await AsyncStorage.removeItem("userInfo");
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      navigation.navigate("Main");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   // Component render từng ảnh trong carousel
   const renderBannerItem = ({ item }) => {
@@ -166,9 +178,13 @@ export default function Home() {
     );
   };
 
+  // Hàm điều hướng đến trang chi tiết sản phẩm
+  const handleProductDetail = (productId) => {
+    navigation.navigate("ProductDetail", { productId });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Hiển thị thông báo lỗi nếu có */}
       {errorMessage ? (
         <View style={{ padding: 10, backgroundColor: "#ffcccc", margin: 10 }}>
           <Text style={{ color: "red", textAlign: "center" }}>
@@ -177,46 +193,121 @@ export default function Home() {
         </View>
       ) : null}
 
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="cafe" size={24} color="#E57905" />
+      {/* Header tùy thuộc trạng thái đăng nhập */}
+      {isLoggedIn ? (
+        <View style={styles.header}>
+          {/* Logo và tên người dùng */}
+          <View style={styles.headerLeft}>
+            <View style={styles.logoContainer}>
+              <Ionicons name="cafe" size={24} color="#E57905" />
+            </View>
+            <Text style={styles.greeting}>Sulu</Text>
           </View>
-          <Text style={styles.greeting}>
-            Chào bạn mới <Text style={{ fontSize: 18 }}>👋</Text>
-          </Text>
+
+          {/* Thông tin tài khoản */}
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.userContainer}>
+              {userInfo?.avatarUrl ? (
+                <Image
+                  source={{ uri: userInfo.avatarUrl }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <Ionicons
+                  name="person-circle-outline"
+                  size={40}
+                  color="#E57905"
+                />
+              )}
+              <Text style={styles.userName}>{userInfo?.username}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={styles.logoutButton}
+            >
+              <Text style={styles.logoutText}>Đăng xuất</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.ticketButton}>
-            <FontAwesome name="ticket" size={20} color="#E57905" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color="black" />
-          </TouchableOpacity>
+      ) : (
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.logoContainer}>
+              <Ionicons name="cafe" size={24} color="#E57905" />
+            </View>
+            <Text style={styles.greeting}>
+              Bạn ơi, Cà phê nhé! <Text style={{ fontSize: 18 }}>👋</Text>
+            </Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.ticketButton}>
+              <FontAwesome name="ticket" size={20} color="#E57905" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.notificationButton}>
+              <Ionicons name="notifications-outline" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Login Card */}
-        <View style={styles.loginCard}>
-          <View style={styles.loginCardContent}>
-            <Text style={styles.loginTitle}>Đăng nhập</Text>
-            <Text style={styles.loginSubtitle}>
-              Sử dụng app để tích điểm và đổi những ưu đãi chỉ dành riêng cho
-              thành viên bạn nhé !
-            </Text>
-            <TouchableOpacity style={styles.loginButton}>
-              <Text style={styles.loginButtonText}>Đăng nhập</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.rewardButton}>
-              <Text style={styles.rewardText}>The Coffee House's Reward</Text>
-              <Feather name="chevron-right" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Giao diện đăng nhập hoặc menu sản phẩm */}
+        {isLoggedIn ? (
+          <>
+            {/* Thanh tìm kiếm */}
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Tìm kiếm sản phẩm..."
+                placeholderTextColor="#777"
+              />
+              <Ionicons
+                name="search"
+                size={24}
+                color="#E57905"
+                style={styles.searchIcon}
+              />
+            </View>
 
-        {/* Service Icons */}
+            {/* Menu sản phẩm */}
+            <View style={styles.menuContainer}>
+              {[
+                { name: "Tất cả", categoryId: null },
+                { name: "Cà Phê", categoryId: 1 },
+                { name: "Trà Sữa", categoryId: 2 },
+                { name: "Thức uống đá xay", categoryId: 3 },
+                { name: "Bánh & Snack", categoryId: 4 },
+                { name: "Trà trái cây", categoryId: 5 },
+              ].map((item, index) => (
+                <TouchableOpacity key={index} style={styles.menuItem}>
+                  <Text style={styles.menuText}>{item.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        ) : (
+          <View style={styles.loginCard}>
+            <View style={styles.loginCardContent}>
+              <Text style={styles.loginTitle}>Chào bạn</Text>
+              <Text style={styles.loginSubtitle}>
+                Sử dụng app để tích điểm và đổi những ưu đãi chỉ dành riêng cho
+                thành viên bạn nhé !
+              </Text>
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={() => navigation.navigate("Login")}
+              >
+                <Text style={styles.loginButtonText}>Đăng nhập</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.rewardButton}>
+                <Text style={styles.rewardText}>SuLi Coffee Reward</Text>
+                <Feather name="chevron-right" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Các phần còn lại giữ nguyên */}
         <View style={styles.serviceContainer}>
           <TouchableOpacity style={styles.serviceItem}>
             <View style={styles.serviceIconContainer}>
@@ -247,7 +338,6 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        {/* Promotion Banner (Using react-native-snap-carousel) */}
         <View style={styles.promotionContainer}>
           <Carousel
             data={bannerImages}
@@ -260,7 +350,6 @@ export default function Home() {
             onSnapToItem={(index) => setActiveSlide(index)}
             useNativeDriver={false}
           />
-          {/* Pagination Dots */}
           <View style={styles.paginationDots}>
             {bannerImages.map((_, index) => (
               <View
@@ -274,7 +363,6 @@ export default function Home() {
           </View>
         </View>
 
-        {/* Discover More Section */}
         <View style={styles.discoverSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Khám phá thêm ✨</Text>
@@ -286,7 +374,6 @@ export default function Home() {
             </TouchableOpacity>
           </View>
 
-          {/* Special Offers (Ưu đãi đặc biệt) */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -295,7 +382,6 @@ export default function Home() {
             {offerImages.map((item, index) => renderOfferItem({ item, index }))}
           </ScrollView>
 
-          {/* Delivery Info */}
           <TouchableOpacity style={styles.deliveryInfoCard}>
             <View style={styles.deliveryIconContainer}>
               <FontAwesome name="motorcycle" size={24} color="#E57905" />
@@ -309,45 +395,48 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Tìm kiếm"
-            placeholderTextColor="#777"
-          />
-          <Ionicons
-            name="heart-outline"
-            size={24}
-            color="#E57905"
-            style={styles.searchIcon}
-          />
-        </View>
-        {/* Product List */}
         <View style={styles.productSection}>
           {products.map((product) => (
-            <TouchableOpacity key={product.id} style={styles.productCard}>
+            <TouchableOpacity
+              key={product.id}
+              style={styles.productCard}
+              onPress={() => handleProductDetail(product.id)}
+            >
               {product.isNew === 1 && (
                 <View style={styles.newBadge}>
                   <Text style={styles.newBadgeText}>NEW</Text>
                 </View>
               )}
               <Image
-                source={{ uri: product.image }}
+                source={{ uri: product.image, cache: "reload" }}
                 style={styles.productImage}
                 resizeMode="cover"
+                defaultSource={defaultImage}
+                onLoad={() =>
+                  console.log("Image loaded successfully for", product.name)
+                }
+                onError={(e) =>
+                  console.log(
+                    "Image load error for",
+                    product.name,
+                    ":",
+                    e.nativeEvent.error
+                  )
+                }
               />
               <Text style={styles.productName}>{product.name}</Text>
               <View style={styles.productPriceContainer}>
                 <Text style={styles.productPrice}>
-                  {/* Hiển thị giá giảm nếu có, nếu không thì hiển thị giá gốc */}
                   {(product.discountPrice && product.discountPrice > 0
                     ? product.discountPrice
                     : product.price
                   ).toLocaleString("vi-VN")}{" "}
                   đ
                 </Text>
-                <TouchableOpacity style={styles.addButton}>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => handleProductDetail(product.id)}
+                >
                   <Ionicons name="add" size={20} color="#FFF" />
                 </TouchableOpacity>
               </View>
@@ -355,34 +444,6 @@ export default function Home() {
           ))}
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNavigation}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home" size={24} color="#F37934" />
-          <Text style={[styles.navText, styles.activeNavText]}>Trang chủ</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="cafe-outline" size={24} color="#777777" />
-          <Text style={styles.navText}>Đặt hàng</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="storefront-outline" size={24} color="#777777" />
-          <Text style={styles.navText}>Cửa hàng</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="local-offer" size={24} color="#777777" />
-          <Text style={styles.navText}>Ưu đãi</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Feather name="menu" size={24} color="#777777" />
-          <Text style={styles.navText}>Khác</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
