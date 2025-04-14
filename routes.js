@@ -4,10 +4,25 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const nodemailer = require("nodemailer");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 const router = express.Router();
 
 router.use(cors());
+
+// Cấu hình Nodemailer (thay bằng thông tin SMTP của bạn)
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USER || "your-email@gmail.com",
+    pass: process.env.EMAIL_PASS || "your-app-password",
+  },
+});
+
+// Lưu trữ OTP tạm thời (nên dùng Redis trong thực tế)
+const otps = {};
 
 // Cấu hình multer để lưu ảnh
 const storage = multer.diskStorage({
@@ -42,6 +57,122 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+// API gửi mã OTP để đặt lại mật khẩu
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Vui lòng cung cấp email." });
+  }
+
+  try {
+    const pool = await connectDB();
+
+    // Kiểm tra xem email có tồn tại không
+    const userResult = await pool
+      .request()
+      .input("email", sql.NVarChar, email)
+      .query("SELECT * FROM Users WHERE Email = @email");
+
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({ error: "Email không tồn tại." });
+    }
+
+    // Tạo mã OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    otps[email] = { code: otp, expires: Date.now() + 5 * 60 * 1000 }; // OTP hết hạn sau 5 phút
+
+    // Trả về OTP trực tiếp trong phản hồi thay vì gửi email
+    res.status(200).json({
+      message:
+        "Mã OTP đã được tạo. Kiểm tra mã OTP dưới đây (do gửi email không hoạt động).",
+      otp: otp, // Trả về OTP để kiểm tra
+    });
+  } catch (err) {
+    console.error("Lỗi trong forgot-password:", err);
+    res.status(500).json({ error: "Lỗi khi xử lý yêu cầu." });
+  }
+});
+
+// API xác minh mã OTP
+router.post("/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res
+      .status(400)
+      .json({ error: "Vui lòng cung cấp email và mã OTP." });
+  }
+
+  try {
+    const storedOtp = otps[email];
+
+    if (!storedOtp) {
+      return res
+        .status(400)
+        .json({ error: "Mã OTP không tồn tại hoặc đã hết hạn." });
+    }
+
+    if (storedOtp.expires < Date.now()) {
+      delete otps[email];
+      return res.status(400).json({ error: "Mã OTP đã hết hạn." });
+    }
+
+    if (storedOtp.code !== otp) {
+      return res.status(400).json({ error: "Mã OTP không hợp lệ." });
+    }
+
+    // Xóa OTP sau khi xác minh thành công
+    delete otps[email];
+    res.status(200).json({ message: "Xác minh OTP thành công." });
+  } catch (err) {
+    console.error("Lỗi trong verify-otp:", err);
+    res.status(500).json({ error: "Lỗi khi xác minh OTP." });
+  }
+});
+
+// API đặt lại mật khẩu
+router.post("/reset-password", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res
+      .status(400)
+      .json({ error: "Vui lòng cung cấp email và mật khẩu mới." });
+  }
+
+  try {
+    const pool = await connectDB();
+
+    // Kiểm tra xem email có tồn tại không
+    const userResult = await pool
+      .request()
+      .input("email", sql.NVarChar, email)
+      .query("SELECT * FROM Users WHERE Email = @email");
+
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({ error: "Email không tồn tại." });
+    }
+
+    // Mã hóa mật khẩu mới
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Cập nhật mật khẩu
+    await pool
+      .request()
+      .input("email", sql.NVarChar, email)
+      .input("passwordHash", sql.NVarChar, passwordHash)
+      .query(
+        "UPDATE Users SET PasswordHash = @passwordHash WHERE Email = @email"
+      );
+
+    res.status(200).json({ message: "Cập nhật mật khẩu thành công." });
+  } catch (err) {
+    console.error("Lỗi trong reset-password:", err);
+    res.status(500).json({ error: "Lỗi khi cập nhật mật khẩu." });
+  }
+});
 // API đăng ký người dùng mới
 router.post("/register", async (req, res) => {
   const { username, email, password, fullName, phone, address } = req.body;
@@ -69,11 +200,15 @@ router.post("/register", async (req, res) => {
         .json({ error: "Tên người dùng hoặc email đã được sử dụng." });
     }
 
+    // Mã hóa mật khẩu
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
     await pool
       .request()
       .input("username", sql.NVarChar, username)
       .input("email", sql.NVarChar, email)
-      .input("passwordHash", sql.NVarChar, password)
+      .input("passwordHash", sql.NVarChar, passwordHash)
       .input("fullName", sql.NVarChar, fullName || null)
       .input("phone", sql.NVarChar, phone || null)
       .input("address", sql.NVarChar, address || null)
@@ -116,12 +251,26 @@ router.post("/login", async (req, res) => {
     const user = result.recordset[0];
     console.log(user.fullName);
 
-    if (password !== user.PasswordHash) {
+    // Kiểm tra mật khẩu
+    const isMatch = await bcrypt.compare(password, user.PasswordHash);
+    if (!isMatch) {
       console.log("Password incorrect for user:", username);
       return res.status(400).json({ error: "Mật khẩu không đúng." });
     }
 
-    res.status(200).json({ message: "Đăng nhập thành công!" });
+    res.status(200).json({
+      message: "Đăng nhập thành công!",
+      user: {
+        username: user.Username,
+        fullName: user.FullName,
+        email: user.Email,
+        phone: user.Phone,
+        address: user.Address,
+        avatarUrl: user.AvatarUrl
+          ? `${process.env.NGROK_BASE_URL}${user.AvatarUrl}`
+          : null,
+      },
+    });
   } catch (err) {
     console.error("Error in login:", err);
     res.status(500).json({ error: "Lỗi khi đăng nhập." });

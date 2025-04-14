@@ -7,6 +7,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Login from "./Screens/Login";
 import Register from "./Screens/Register";
 import Forget from "./Screens/Forget";
+import Forget1 from "./Screens/Forget1";
+import Forget2 from "./Screens/Forget2";
 import Home from "./Screens/Home";
 import Order from "./Screens/Order";
 import Offers from "./Screens/Offers";
@@ -187,7 +189,7 @@ export default function App() {
               name="NotificationScreen"
               component={NotificationScreen}
             />
-              <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
+            <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
           </>
         ) : (
           <>
@@ -203,6 +205,8 @@ export default function App() {
             />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="Forget" component={Forget} />
+            <Stack.Screen name="Forget1" component={Forget1} />
+            <Stack.Screen name="Forget2" component={Forget2} />
             <Stack.Screen name="ProductDetail" component={ProductDetail} />
             <Stack.Screen name="Cart" component={Cart} />
             <Stack.Screen name="Checkout" component={Checkout} />
@@ -228,7 +232,7 @@ export default function App() {
               name="NotificationScreen"
               component={NotificationScreen}
             />
-              <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
+            <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
           </>
         )}
       </Stack.Navigator>
