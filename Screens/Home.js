@@ -50,6 +50,41 @@ export default function Home({ navigation, route }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // State cho tìm kiếm
+  const [currentPage, setCurrentPage] = useState(1); // State cho phân trang
+  const productsPerPage = 6; // 6 sản phẩm mỗi trang
+
+  // Lọc sản phẩm dựa trên searchQuery
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Tính toán sản phẩm hiển thị theo trang
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  // Hàm chuyển trang
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Reset trang về 1 khi searchQuery thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   // Kiểm tra trạng thái đăng nhập và thông tin người dùng
   useEffect(() => {
@@ -71,7 +106,7 @@ export default function Home({ navigation, route }) {
   // Gọi API để lấy danh sách sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
-      const API_URL = "https://9883-171-251-212-26.ngrok-free.app/api/products";
+      const API_URL = "https://060e-171-251-212-26.ngrok-free.app/api/products";
 
       try {
         const response = await fetch(API_URL, {
@@ -196,15 +231,15 @@ export default function Home({ navigation, route }) {
       {/* Header tùy thuộc trạng thái đăng nhập */}
       {isLoggedIn ? (
         <View style={styles.header}>
-          {/* Logo và tên người dùng */}
           <View style={styles.headerLeft}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="cafe" size={24} color="#E57905" />
-            </View>
-            <Text style={styles.greeting}>Sulu</Text>
+            <TouchableOpacity
+              style={styles.logoContainer}
+              onPress={() => navigation.navigate("Cart")}
+            >
+              <Ionicons name="cart-outline" size={24} color="#E57905" />
+            </TouchableOpacity>
+            <Text style={styles.greeting}>Suli</Text>
           </View>
-
-          {/* Thông tin tài khoản */}
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.userContainer}>
               {userInfo?.avatarUrl ? (
@@ -232,9 +267,12 @@ export default function Home({ navigation, route }) {
       ) : (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="cafe" size={24} color="#E57905" />
-            </View>
+            <TouchableOpacity
+              style={styles.logoContainer}
+              onPress={() => navigation.navigate("Cart")}
+            >
+              <Ionicons name="cart-outline" size={24} color="#E57905" />
+            </TouchableOpacity>
             <Text style={styles.greeting}>
               Bạn ơi, Cà phê nhé! <Text style={{ fontSize: 18 }}>👋</Text>
             </Text>
@@ -251,41 +289,8 @@ export default function Home({ navigation, route }) {
       )}
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Giao diện đăng nhập hoặc menu sản phẩm */}
-        {isLoggedIn ? (
-          <>
-            {/* Thanh tìm kiếm */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Tìm kiếm sản phẩm..."
-                placeholderTextColor="#777"
-              />
-              <Ionicons
-                name="search"
-                size={24}
-                color="#E57905"
-                style={styles.searchIcon}
-              />
-            </View>
-
-            {/* Menu sản phẩm */}
-            <View style={styles.menuContainer}>
-              {[
-                { name: "Tất cả", categoryId: null },
-                { name: "Cà Phê", categoryId: 1 },
-                { name: "Trà Sữa", categoryId: 2 },
-                { name: "Thức uống đá xay", categoryId: 3 },
-                { name: "Bánh & Snack", categoryId: 4 },
-                { name: "Trà trái cây", categoryId: 5 },
-              ].map((item, index) => (
-                <TouchableOpacity key={index} style={styles.menuItem}>
-                  <Text style={styles.menuText}>{item.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </>
-        ) : (
+        {/* Giao diện đăng nhập nếu chưa đăng nhập */}
+        {!isLoggedIn && (
           <View style={styles.loginCard}>
             <View style={styles.loginCardContent}>
               <Text style={styles.loginTitle}>Chào bạn</Text>
@@ -307,7 +312,7 @@ export default function Home({ navigation, route }) {
           </View>
         )}
 
-        {/* Các phần còn lại giữ nguyên */}
+        {/* Các phần dịch vụ, banner, và khám phá */}
         <View style={styles.serviceContainer}>
           <TouchableOpacity style={styles.serviceItem}>
             <View style={styles.serviceIconContainer}>
@@ -315,21 +320,18 @@ export default function Home({ navigation, route }) {
             </View>
             <Text style={styles.serviceText}>Giao hàng</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.serviceItem}>
             <View style={styles.serviceIconContainer}>
               <Ionicons name="hand-left-outline" size={24} color="#E57905" />
             </View>
             <Text style={styles.serviceText}>Mang đi</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.serviceItem}>
             <View style={styles.serviceIconContainer}>
               <Ionicons name="cafe-outline" size={24} color="#E57905" />
             </View>
             <Text style={styles.serviceText}>Cà phê{"\n"}hạt rang</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.serviceItem}>
             <View style={styles.serviceIconContainer}>
               <MaterialIcons name="grain" size={24} color="#E57905" />
@@ -373,7 +375,6 @@ export default function Home({ navigation, route }) {
               </Text>
             </TouchableOpacity>
           </View>
-
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -381,7 +382,6 @@ export default function Home({ navigation, route }) {
           >
             {offerImages.map((item, index) => renderOfferItem({ item, index }))}
           </ScrollView>
-
           <TouchableOpacity style={styles.deliveryInfoCard}>
             <View style={styles.deliveryIconContainer}>
               <FontAwesome name="motorcycle" size={24} color="#E57905" />
@@ -395,54 +395,114 @@ export default function Home({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.productSection}>
-          {products.map((product) => (
-            <TouchableOpacity
-              key={product.id}
-              style={styles.productCard}
-              onPress={() => handleProductDetail(product.id)}
-            >
-              {product.isNew === 1 && (
-                <View style={styles.newBadge}>
-                  <Text style={styles.newBadgeText}>NEW</Text>
-                </View>
-              )}
-              <Image
-                source={{ uri: product.image, cache: "reload" }}
-                style={styles.productImage}
-                resizeMode="cover"
-                defaultSource={defaultImage}
-                onLoad={() =>
-                  console.log("Image loaded successfully for", product.name)
-                }
-                onError={(e) =>
-                  console.log(
-                    "Image load error for",
-                    product.name,
-                    ":",
-                    e.nativeEvent.error
-                  )
-                }
+        {/* Thanh tìm kiếm và menu sản phẩm di chuyển xuống đây */}
+        {isLoggedIn && (
+          <>
+            {/* Thanh tìm kiếm */}
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Tìm kiếm sản phẩm..."
+                placeholderTextColor="#777"
+                value={searchQuery}
+                onChangeText={(text) => setSearchQuery(text)}
               />
-              <Text style={styles.productName}>{product.name}</Text>
-              <View style={styles.productPriceContainer}>
-                <Text style={styles.productPrice}>
-                  {(product.discountPrice && product.discountPrice > 0
-                    ? product.discountPrice
-                    : product.price
-                  ).toLocaleString("vi-VN")}{" "}
-                  đ
-                </Text>
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => handleProductDetail(product.id)}
-                >
-                  <Ionicons name="add" size={20} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
+              <Ionicons
+                name="search"
+                size={24}
+                color="#E57905"
+                style={styles.searchIcon}
+              />
+            </View>
+
+            {/* Menu sản phẩm */}
+          </>
+        )}
+
+        {/* Phần hiển thị sản phẩm */}
+        <View style={styles.productSection}>
+          {currentProducts.length > 0 ? (
+            currentProducts.map((product) => (
+              <TouchableOpacity
+                key={product.id}
+                style={styles.productCard}
+                onPress={() => handleProductDetail(product.id)}
+              >
+                {product.isNew === 1 && (
+                  <View style={styles.newBadge}>
+                    <Text style={styles.newBadgeText}>NEW</Text>
+                  </View>
+                )}
+                <Image
+                  source={{ uri: product.image, cache: "reload" }}
+                  style={styles.productImage}
+                  resizeMode="cover"
+                  defaultSource={defaultImage}
+                  onLoad={() =>
+                    console.log("Image loaded successfully for", product.name)
+                  }
+                  onError={(e) =>
+                    console.log(
+                      "Image load error for",
+                      product.name,
+                      ":",
+                      e.nativeEvent.error
+                    )
+                  }
+                />
+                <Text style={styles.productName}>{product.name}</Text>
+                <View style={styles.productPriceContainer}>
+                  <Text style={styles.productPrice}>
+                    {(product.discountPrice && product.discountPrice > 0
+                      ? product.discountPrice
+                      : product.price
+                    ).toLocaleString("vi-VN")}{" "}
+                    đ
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => handleProductDetail(product.id)}
+                  >
+                    <Ionicons name="add" size={20} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={{ textAlign: "center", marginTop: 20, color: "#777" }}>
+              Không tìm thấy sản phẩm nào.
+            </Text>
+          )}
         </View>
+
+        {/* Phân trang */}
+        {filteredProducts.length > 0 && (
+          <View style={styles.paginationContainer}>
+            <TouchableOpacity
+              style={[
+                styles.pageButton,
+                currentPage === 1 && styles.disabledButton,
+              ]}
+              onPress={goToPreviousPage}
+              disabled={currentPage === 1}
+            >
+              <Text style={styles.pageButtonText}>Trước</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageInfo}>
+              Trang {currentPage} / {totalPages}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.pageButton,
+                currentPage === totalPages && styles.disabledButton,
+              ]}
+              onPress={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              <Text style={styles.pageButtonText}>Tiếp</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

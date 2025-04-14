@@ -58,7 +58,7 @@ export default function SignUp() {
     }
 
     try {
-      const API_URL = "https://9883-171-251-212-26.ngrok-free.app/api/register";
+      const API_URL = "https://060e-171-251-212-26.ngrok-free.app/api/register";
 
       const response = await fetch(API_URL, {
         method: "POST",

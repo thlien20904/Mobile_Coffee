@@ -167,6 +167,8 @@ CREATE TABLE OrderDetails (
     FOREIGN KEY (ToppingId) REFERENCES Topping(ToppingID)
 );
 
+select *from Orders
+select *from OrderDetails
 -- Table: Invoice
 CREATE TABLE Invoice (
     InvoiceId INT PRIMARY KEY IDENTITY,
@@ -235,7 +237,7 @@ CREATE TABLE FoodIngredient (
     FOREIGN KEY (IngredientId) REFERENCES Ingredient(IngredientId)
 );
 GO
-
+ select *from users
 
 INSERT INTO Users (Username, Email, PasswordHash, FullName, Phone, Address, Role, AvatarUrl)
 VALUES 

@@ -180,10 +180,36 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     marginBottom: 20,
+    marginTop: 20,
   },
   serviceItem: {
     alignItems: "center",
     width: "22%",
+  },
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  pageButton: {
+    backgroundColor: "#E57905",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  pageButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  pageInfo: {
+    fontSize: 16,
+    color: "#777",
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
   },
   serviceIconContainer: {
     width: 50,

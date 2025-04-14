@@ -3,34 +3,50 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF",
+    backgroundColor: "#FEF8EF", // Màu nền be nhạt, đồng bộ với các màn hình khác
   },
   content: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start", // Dịch nội dung lên trên
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 30,
+    paddingTop: 20, // Thêm khoảng cách từ đỉnh màn hình
+  },
+  icon: {
+    marginBottom: 20, // Giảm khoảng cách dưới biểu tượng để không quá xa tiêu đề
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 10,
+    color: "#2A2A2A",
+    marginBottom: 12, // Giảm khoảng cách dưới tiêu đề
   },
   message: {
     fontSize: 16,
-    color: "#777",
-    marginBottom: 20,
+    color: "#666",
+    marginBottom: 8, // Giảm khoảng cách để không quá xa dòng subMessage
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  subMessage: {
+    fontSize: 14,
+    color: "#888",
+    marginBottom: 25, // Giảm khoảng cách để nút không bị quá xa
     textAlign: "center",
   },
   continueButton: {
     backgroundColor: "#E57905",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    paddingVertical: 15,
+    paddingHorizontal: 50,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 4,
   },
   continueText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "bold",
   },
 });

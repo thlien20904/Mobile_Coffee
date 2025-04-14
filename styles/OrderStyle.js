@@ -20,39 +20,63 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#000",
   },
-  headerIcons: {
+  filterContainer: {
     flexDirection: "row",
-  },
-  icon: {
-    marginLeft: 15,
-  },
-  categoryContainer: {
-    paddingVertical: 10,
+    alignItems: "center",
     paddingHorizontal: 16,
+    paddingVertical: 10,
     backgroundColor: "#FFF",
     borderBottomWidth: 1,
     borderBottomColor: "#EEEEEE",
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: "#EEEEEE",
+    maxWidth: 150, // Giới hạn chiều rộng để không chiếm hết không gian
+  },
+  searchInput: {
+    flex: 1,
+    height: 32,
+    fontSize: 14,
+    color: "#333",
+    paddingVertical: 0,
+  },
+  searchIcon: {
+    marginLeft: 5,
+  },
+  categoryContainer: {
+    flex: 2, // Chiếm không gian lớn hơn để hiển thị danh mục
   },
   categoryList: {
     paddingVertical: 5,
   },
   categoryItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
   },
   selectedCategory: {
     borderBottomWidth: 2,
     borderBottomColor: "#E57905",
   },
   categoryText: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#777",
     fontWeight: "500",
   },
   selectedCategoryText: {
     color: "#E57905",
     fontWeight: "bold",
+  },
+  heartIconContainer: {
+    padding: 5,
   },
   categoryTitle: {
     fontSize: 18,
@@ -64,6 +88,7 @@ const styles = StyleSheet.create({
   productSection: {
     paddingHorizontal: 16,
     paddingVertical: 10,
+    paddingBottom: 20,
   },
   productCard: {
     marginBottom: 15,
@@ -125,6 +150,33 @@ const styles = StyleSheet.create({
     height: 30,
     justifyContent: "center",
     alignItems: "center",
+  },
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 15,
+    marginTop: -20,
+  },
+  pageButton: {
+    backgroundColor: "#E57905",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginHorizontal: 10,
+  },
+  pageButtonText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  disabledButton: {
+    backgroundColor: "#CCCCCC",
+  },
+  pageInfo: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
   },
 });
 

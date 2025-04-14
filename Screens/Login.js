@@ -51,7 +51,7 @@ export default function Login() {
     }
 
     try {
-      const API_URL = "https://9883-171-251-212-26.ngrok-free.app/api/login";
+      const API_URL = "https://060e-171-251-212-26.ngrok-free.app/api/login";
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -70,15 +70,20 @@ export default function Login() {
 
       if (response.status === 200) {
         setErrorMessage("");
+        // Xóa dữ liệu cũ trong AsyncStorage trước khi lưu mới
+        await AsyncStorage.removeItem("userInfo");
         // Lưu trạng thái đăng nhập và thông tin người dùng
         await AsyncStorage.setItem("isLoggedIn", "true");
-        await AsyncStorage.setItem(
-          "userInfo",
-          JSON.stringify({
-            username,
-            avatarUrl: data.avatarUrl || "", // Giả sử API trả về avatarUrl
-          })
-        );
+        const userInfo = {
+          username: data.user?.username || username,
+          fullName: data.user?.fullName || "",
+          email: data.user?.email || "",
+          phone: data.user?.phone || "",
+          address: data.user?.address || "",
+          avatarUrl: data.user?.avatarUrl || "",
+        };
+        await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
+        console.log("Stored userInfo:", userInfo); // Log để kiểm tra
         navigation.navigate("Main");
       } else {
         const msg = `❌ Đăng nhập thất bại (${response.status}):\n${
@@ -111,7 +116,11 @@ export default function Login() {
           await AsyncStorage.setItem(
             "userInfo",
             JSON.stringify({
-              username: user.displayName,
+              username: user.displayName || "",
+              fullName: user.displayName || "",
+              email: user.email || "",
+              phone: user.phoneNumber || "",
+              address: "", // Google không cung cấp địa chỉ, để trống
               avatarUrl: user.photoURL || "",
             })
           );
@@ -139,7 +148,11 @@ export default function Login() {
           await AsyncStorage.setItem(
             "userInfo",
             JSON.stringify({
-              username: user.displayName,
+              username: user.displayName || "",
+              fullName: user.displayName || "",
+              email: user.email || "",
+              phone: user.phoneNumber || "",
+              address: "", // Facebook không cung cấp địa chỉ, để trống
               avatarUrl: user.photoURL || "",
             })
           );

@@ -7,61 +7,232 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../styles/Cart";
 
 const defaultImage = require("../assets/banner.png");
 
 export default function Cart({ route, navigation }) {
   const [cartItems, setCartItems] = useState([]);
+  const [username, setUsername] = useState(null);
 
-  // Thêm sản phẩm mới vào giỏ hàng khi được truyền từ ProductDetail
+  // Lấy username từ AsyncStorage
   useEffect(() => {
-    if (route.params?.newItem) {
-      const newItem = route.params.newItem;
-      setCartItems((prevItems) => {
-        const existingItemIndex = prevItems.findIndex(
-          (item) => item.id === newItem.id
-        );
-        if (existingItemIndex !== -1) {
-          // Nếu sản phẩm đã có trong giỏ hàng, tăng số lượng
-          const updatedItems = [...prevItems];
-          updatedItems[existingItemIndex].quantity += newItem.quantity;
-          return updatedItems;
-        } else {
-          // Nếu sản phẩm chưa có, thêm mới
-          return [...prevItems, newItem];
+    const getUserInfo = async () => {
+      try {
+        const user = await AsyncStorage.getItem("userInfo");
+        if (user) {
+          const parsedUser = JSON.parse(user);
+          setUsername(parsedUser.username);
         }
-      });
+      } catch (error) {
+        console.error("Error getting user info:", error);
+      }
+    };
+    getUserInfo();
+  }, []);
+
+  // Lấy giỏ hàng từ API khi username đã có
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (!username) return;
+
+      try {
+        const response = await fetch(
+          `https://060e-171-251-212-26.ngrok-free.app/api/cart?username=${username}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok) {
+          setCartItems(data);
+        } else {
+          Alert.alert("Lỗi", data.error || "Không thể lấy giỏ hàng.");
+        }
+      } catch (error) {
+        Alert.alert("Lỗi", "Đã xảy ra lỗi khi lấy giỏ hàng: " + error.message);
+      }
+    };
+
+    fetchCart();
+  }, [username]);
+
+  // Thêm sản phẩm mới vào giỏ hàng
+  useEffect(() => {
+    const addToCart = async () => {
+      if (!route.params?.newItem || !username) return;
+
+      const newItem = route.params.newItem;
+      const price =
+        newItem.discountPrice && newItem.discountPrice > 0
+          ? newItem.discountPrice
+          : newItem.price;
+
+      try {
+        const response = await fetch(
+          "https://060e-171-251-212-26.ngrok-free.app/api/cart",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username,
+              foodId: newItem.id,
+              quantity: newItem.quantity,
+              price,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok) {
+          // Sau khi thêm thành công, gọi lại API để lấy giỏ hàng mới
+          const fetchResponse = await fetch(
+            `https://060e-171-251-212-26.ngrok-free.app/api/cart?username=${username}`
+          );
+          const fetchData = await fetchResponse.json();
+          if (fetchResponse.ok) {
+            setCartItems(fetchData);
+          }
+        } else {
+          Alert.alert(
+            "Lỗi",
+            data.error || "Không thể thêm sản phẩm vào giỏ hàng."
+          );
+        }
+      } catch (error) {
+        Alert.alert("Lỗi", "Đã xảy ra lỗi khi thêm sản phẩm: " + error.message);
+      }
+    };
+
+    addToCart();
+  }, [route.params?.newItem, username]);
+
+  const increaseQuantity = async (gioHangId, price) => {
+    const item = cartItems.find((item) => item.gioHangId === gioHangId);
+    const newQuantity = item.quantity + 1;
+
+    try {
+      const response = await fetch(
+        `https://060e-171-251-212-26.ngrok-free.app/api/cart/${gioHangId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            quantity: newQuantity,
+            price,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        setCartItems((prevItems) =>
+          prevItems.map((item) =>
+            item.gioHangId === gioHangId
+              ? {
+                  ...item,
+                  quantity: newQuantity,
+                  totalPrice: price * newQuantity,
+                }
+              : item
+          )
+        );
+      } else {
+        Alert.alert("Lỗi", data.error || "Không thể cập nhật số lượng.");
+      }
+    } catch (error) {
+      Alert.alert(
+        "Lỗi",
+        "Đã xảy ra lỗi khi cập nhật số lượng: " + error.message
+      );
     }
-  }, [route.params?.newItem]);
-
-  const increaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
   };
 
-  const decreaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
+  const decreaseQuantity = async (gioHangId, price) => {
+    const item = cartItems.find((item) => item.gioHangId === gioHangId);
+    if (item.quantity <= 1) return;
+
+    const newQuantity = item.quantity - 1;
+
+    try {
+      const response = await fetch(
+        `https://060e-171-251-212-26.ngrok-free.app/api/cart/${gioHangId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            quantity: newQuantity,
+            price,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        setCartItems((prevItems) =>
+          prevItems.map((item) =>
+            item.gioHangId === gioHangId
+              ? {
+                  ...item,
+                  quantity: newQuantity,
+                  totalPrice: price * newQuantity,
+                }
+              : item
+          )
+        );
+      } else {
+        Alert.alert("Lỗi", data.error || "Không thể cập nhật số lượng.");
+      }
+    } catch (error) {
+      Alert.alert(
+        "Lỗi",
+        "Đã xảy ra lỗi khi cập nhật số lượng: " + error.message
+      );
+    }
   };
 
-  const removeItem = (id) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const removeItem = async (gioHangId) => {
+    try {
+      const response = await fetch(
+        `https://060e-171-251-212-26.ngrok-free.app/api/cart/${gioHangId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        setCartItems((prevItems) =>
+          prevItems.filter((item) => item.gioHangId !== gioHangId)
+        );
+      } else {
+        Alert.alert("Lỗi", data.error || "Không thể xóa sản phẩm.");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Đã xảy ra lỗi khi xóa sản phẩm: " + error.message);
+    }
   };
 
   const calculateTotal = () => {
     return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) => total + (item.totalPrice || item.price * item.quantity),
       0
     );
   };
@@ -87,7 +258,7 @@ export default function Cart({ route, navigation }) {
         <View style={styles.quantityContainer}>
           <TouchableOpacity
             style={styles.quantityButton}
-            onPress={() => decreaseQuantity(item.id)}
+            onPress={() => decreaseQuantity(item.gioHangId, item.price)}
             disabled={item.quantity === 1}
           >
             <Ionicons
@@ -99,7 +270,7 @@ export default function Cart({ route, navigation }) {
           <Text style={styles.quantityText}>{item.quantity}</Text>
           <TouchableOpacity
             style={styles.quantityButton}
-            onPress={() => increaseQuantity(item.id)}
+            onPress={() => increaseQuantity(item.gioHangId, item.price)}
           >
             <Ionicons name="add" size={20} color="#E57905" />
           </TouchableOpacity>
@@ -107,7 +278,7 @@ export default function Cart({ route, navigation }) {
       </View>
       <TouchableOpacity
         style={styles.removeButton}
-        onPress={() => removeItem(item.id)}
+        onPress={() => removeItem(item.gioHangId)}
       >
         <Ionicons name="trash-outline" size={24} color="#FF0000" />
       </TouchableOpacity>
@@ -141,7 +312,7 @@ export default function Cart({ route, navigation }) {
           <FlatList
             data={cartItems}
             renderItem={renderCartItem}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.gioHangId.toString()}
             contentContainerStyle={styles.cartList}
           />
           <View style={styles.footer}>

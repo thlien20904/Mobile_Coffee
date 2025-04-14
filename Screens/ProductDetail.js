@@ -21,12 +21,12 @@ export default function ProductDetail({ route, navigation }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  // Base URL của server chứa ảnh
-  const BASE_IMAGE_URL = "https://9883-171-251-212-26.ngrok-free.app/";
+  // Base URL của server chứa ảnh (không có dấu / ở cuối)
+  const BASE_IMAGE_URL = "https://060e-171-251-212-26.ngrok-free.app"; // Cập nhật URL ngrok mới
 
   useEffect(() => {
     const fetchProductDetail = async () => {
-      const API_URL = `https://9883-171-251-212-26.ngrok-free.app/api/products/${productId}`;
+      const API_URL = `${BASE_IMAGE_URL}/api/products/${productId}`;
 
       try {
         const response = await fetch(API_URL, {
@@ -50,12 +50,15 @@ export default function ProductDetail({ route, navigation }) {
         const data = await response.json();
         console.log("Product from API:", data);
 
-        // Nếu product.image không phải là URL đầy đủ, thêm BASE_IMAGE_URL
+        // Xử lý đường dẫn ảnh
         if (data.image && !data.image.startsWith("http")) {
-          if (!data.image.startsWith("images/")) {
-            data.image = `${BASE_IMAGE_URL}images/${data.image}`;
+          // Loại bỏ dấu / thừa ở đầu và cuối
+          const cleanImagePath = data.image.replace(/^\/+|\/+$/g, "");
+          // Nếu đường dẫn chưa bắt đầu bằng "images/", thêm vào
+          if (!cleanImagePath.startsWith("images/")) {
+            data.image = `${BASE_IMAGE_URL}/images/${cleanImagePath}`;
           } else {
-            data.image = `${BASE_IMAGE_URL}${data.image}`;
+            data.image = `${BASE_IMAGE_URL}/${cleanImagePath}`;
           }
         }
         setProduct(data);
@@ -135,7 +138,7 @@ export default function ProductDetail({ route, navigation }) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="arrow-back" size={30} color="#000" />
         </TouchableOpacity>
 
         <Image

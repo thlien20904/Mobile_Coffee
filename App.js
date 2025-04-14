@@ -9,10 +9,22 @@ import Register from "./Screens/Register";
 import Forget from "./Screens/Forget";
 import Home from "./Screens/Home";
 import Order from "./Screens/Order";
+import Offers from "./Screens/Offers";
 import ProductDetail from "./Screens/ProductDetail";
-import Cart from "./Screens/Cart"; // Thêm import Cart
-import Checkout from "./Screens/Checkout"; // Thêm import Checkout
-import OrderConfirmation from "./Screens/OrderConfirmation"; // Thêm import OrderConfirmation
+import Cart from "./Screens/Cart";
+import Checkout from "./Screens/Checkout";
+import OrderConfirmation from "./Screens/OrderConfirmation";
+import Voucher from "./Screens/Voucher";
+import ExchangeBean from "./Screens/ExchangeBean";
+import Membership from "./Screens/Membership";
+import More from "./Screens/More";
+import Contact from "./Screens/Contact";
+import Settings from "./Screens/Settings";
+import Terms from "./Screens/Terms";
+import VNPayTerms from "./Screens/VNPayTerms";
+import VATInvoiceGuide from "./Screens/VATInvoiceGuide";
+import OrderHistory from "./Screens/OrderHistory";
+import UserProfile from "./Screens/UserProfile";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -71,12 +83,12 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Offers"
-        component={Home}
+        component={Offers}
         options={{ title: "Ưu đãi", headerShown: false }}
       />
       <Tab.Screen
         name="More"
-        component={Home}
+        component={More}
         options={{ title: "Khác", headerShown: false }}
       />
     </Tab.Navigator>
@@ -129,6 +141,16 @@ export default function App() {
               name="OrderConfirmation"
               component={OrderConfirmation}
             />
+            <Stack.Screen name="Voucher" component={Voucher} />
+            <Stack.Screen name="ExchangeBean" component={ExchangeBean} />
+            <Stack.Screen name="Membership" component={Membership} />
+            <Stack.Screen name="Contact" component={Contact} />
+            <Stack.Screen name="Settings" component={Settings} />
+            <Stack.Screen name="Terms" component={Terms} />
+            <Stack.Screen name="VNPayTerms" component={VNPayTerms} />
+            <Stack.Screen name="VATInvoiceGuide" component={VATInvoiceGuide} />
+            <Stack.Screen name="OrderHistory" component={OrderHistory} />
+            <Stack.Screen name="UserProfile" component={UserProfile} />
           </>
         ) : (
           <>
@@ -143,6 +165,16 @@ export default function App() {
               name="OrderConfirmation"
               component={OrderConfirmation}
             />
+            <Stack.Screen name="Voucher" component={Voucher} />
+            <Stack.Screen name="ExchangeBean" component={ExchangeBean} />
+            <Stack.Screen name="Membership" component={Membership} />
+            <Stack.Screen name="Contact" component={Contact} />
+            <Stack.Screen name="Settings" component={Settings} />
+            <Stack.Screen name="Terms" component={Terms} />
+            <Stack.Screen name="VNPayTerms" component={VNPayTerms} />
+            <Stack.Screen name="VATInvoiceGuide" component={VATInvoiceGuide} />
+            <Stack.Screen name="OrderHistory" component={OrderHistory} />
+            <Stack.Screen name="UserProfile" component={UserProfile} />
           </>
         )}
       </Stack.Navigator>
