@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    height: 70, // Tăng chiều cao header
+    height: 120, // Tăng chiều cao header
     paddingHorizontal: 20,
     backgroundColor: "#FFF", // Nền trắng cho header
     borderBottomWidth: 1,
@@ -19,6 +19,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginTop: -45,
+    paddingTop: 30,
   },
   backButton: {
     padding: 8,
@@ -145,11 +147,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 25,
     paddingHorizontal: 20,
     backgroundColor: "#FFF",
     borderTopWidth: 1,
     borderTopColor: "#E5E5E5",
+    paddingTop: 20,
+    marginTop: 30,
   },
   paginationButton: {
     flexDirection: "row",
@@ -158,6 +162,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: "#F8F9FA",
     borderRadius: 8,
+    marginTop: 0,
   },
   paginationButtonDisabled: {
     opacity: 0.5,
@@ -171,6 +176,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#7F8C8D",
     fontWeight: "600",
+    marginTop: 15,
   },
 });
 

@@ -25,11 +25,20 @@ import VNPayTerms from "./Screens/VNPayTerms";
 import VATInvoiceGuide from "./Screens/VATInvoiceGuide";
 import OrderHistory from "./Screens/OrderHistory";
 import UserProfile from "./Screens/UserProfile";
+import StoreScreen from "./Screens/StoreScreen";
+import StoreDetailScreen from "./Screens/StoreDetailScreen";
+import LoginSuccess from "./Screens/LoginSuccess";
+import Reviews from "./Screens/Reviews";
+import MyAddresses from "./Screens/MyAddresses";
+import NotificationScreen from "./Screens/NotificationScreen";
+import DiscoverMore from "./Screens/DiscoverMore";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function MainTabs() {
+function MainTabs({ route }) {
+  const { isLoggedIn, userInfo, updateLoginStatus } = route.params || {};
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -70,6 +79,7 @@ function MainTabs() {
         name="Home"
         component={Home}
         options={{ title: "Trang chủ", headerShown: false }}
+        initialParams={{ isLoggedIn, userInfo, updateLoginStatus }}
       />
       <Tab.Screen
         name="Order"
@@ -78,7 +88,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Store"
-        component={Home}
+        component={StoreScreen}
         options={{ title: "Cửa hàng", headerShown: false }}
       />
       <Tab.Screen
@@ -90,6 +100,7 @@ function MainTabs() {
         name="More"
         component={More}
         options={{ title: "Khác", headerShown: false }}
+        initialParams={{ isLoggedIn, userInfo, updateLoginStatus }} // Thêm initialParams
       />
     </Tab.Navigator>
   );
@@ -99,13 +110,29 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
 
+  // Hàm cập nhật trạng thái đăng nhập
+  const updateLoginStatus = async () => {
+    try {
+      const loggedIn = await AsyncStorage.getItem("isLoggedIn");
+      const user = await AsyncStorage.getItem("userInfo");
+      console.log("isLoggedIn from AsyncStorage:", loggedIn);
+      console.log("userInfo from AsyncStorage:", user);
+      setIsLoggedIn(loggedIn === "true");
+      setUserInfo(user ? JSON.parse(user) : null);
+    } catch (error) {
+      console.error("Error updating login status:", error);
+      setIsLoggedIn(false);
+    }
+  };
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        // Xóa dữ liệu AsyncStorage để kiểm tra giao diện chưa đăng nhập
+        // Xóa dữ liệu AsyncStorage để bắt đầu ở trạng thái chưa đăng nhập
         await AsyncStorage.clear();
         console.log("AsyncStorage cleared");
 
+        // Kiểm tra lại trạng thái sau khi xóa
         const loggedIn = await AsyncStorage.getItem("isLoggedIn");
         const user = await AsyncStorage.getItem("userInfo");
         console.log("isLoggedIn from AsyncStorage:", loggedIn);
@@ -132,7 +159,7 @@ export default function App() {
             <Stack.Screen
               name="Main"
               component={MainTabs}
-              initialParams={{ userInfo }}
+              initialParams={{ isLoggedIn, userInfo, updateLoginStatus }}
             />
             <Stack.Screen name="ProductDetail" component={ProductDetail} />
             <Stack.Screen name="Cart" component={Cart} />
@@ -151,11 +178,29 @@ export default function App() {
             <Stack.Screen name="VATInvoiceGuide" component={VATInvoiceGuide} />
             <Stack.Screen name="OrderHistory" component={OrderHistory} />
             <Stack.Screen name="UserProfile" component={UserProfile} />
+            <Stack.Screen name="StoreDetail" component={StoreDetailScreen} />
+            <Stack.Screen name="Order" component={Order} />
+            <Stack.Screen name="LoginSuccess" component={LoginSuccess} />
+            <Stack.Screen name="Reviews" component={Reviews} />
+            <Stack.Screen name="MyAddresses" component={MyAddresses} />
+            <Stack.Screen
+              name="NotificationScreen"
+              component={NotificationScreen}
+            />
+              <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
           </>
         ) : (
           <>
-            <Stack.Screen name="Main" component={MainTabs} />
-            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen
+              name="Main"
+              component={MainTabs}
+              initialParams={{ isLoggedIn, userInfo, updateLoginStatus }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={Login}
+              initialParams={{ updateLoginStatus }}
+            />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="Forget" component={Forget} />
             <Stack.Screen name="ProductDetail" component={ProductDetail} />
@@ -175,6 +220,15 @@ export default function App() {
             <Stack.Screen name="VATInvoiceGuide" component={VATInvoiceGuide} />
             <Stack.Screen name="OrderHistory" component={OrderHistory} />
             <Stack.Screen name="UserProfile" component={UserProfile} />
+            <Stack.Screen name="StoreDetail" component={StoreDetailScreen} />
+            <Stack.Screen name="LoginSuccess" component={LoginSuccess} />
+            <Stack.Screen name="Reviews" component={Reviews} />
+            <Stack.Screen name="MyAddresses" component={MyAddresses} />
+            <Stack.Screen
+              name="NotificationScreen"
+              component={NotificationScreen}
+            />
+              <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
           </>
         )}
       </Stack.Navigator>

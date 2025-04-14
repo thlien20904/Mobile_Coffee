@@ -9,6 +9,7 @@ import {
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/OrderStyle";
 
 // Ảnh mặc định (fallback) nếu không tải được ảnh từ URL
@@ -27,8 +28,7 @@ export default function Order({ navigation }) {
   // Gọi API để lấy danh sách danh mục
   useEffect(() => {
     const fetchCategories = async () => {
-      const API_URL =
-        "https://060e-171-251-212-26.ngrok-free.app/api/categories";
+      const API_URL = `${NGROK_BASE_URL}/api/categories`;
 
       try {
         const response = await fetch(API_URL, {
@@ -76,7 +76,7 @@ export default function Order({ navigation }) {
   // Gọi API để lấy danh sách sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
-      const API_URL = "https://060e-171-251-212-26.ngrok-free.app/api/products";
+      const API_URL = `${NGROK_BASE_URL}/api/products`;
 
       try {
         const response = await fetch(API_URL, {

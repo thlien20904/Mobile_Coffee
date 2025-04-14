@@ -19,6 +19,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
 } from "firebase/auth";
+import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/Login";
 
 // Firebase config
@@ -34,13 +35,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-export default function Login() {
+export default function Login({ navigation, route }) {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const navigation = useNavigation();
   const [errorMessage, setErrorMessage] = useState("");
+  const {
+    redirectTo = "Main",
+    redirectParams = {},
+    updateLoginStatus,
+  } = route.params || {};
 
   const handleLogin = async () => {
     setErrorMessage("");
@@ -51,7 +56,7 @@ export default function Login() {
     }
 
     try {
-      const API_URL = "https://060e-171-251-212-26.ngrok-free.app/api/login";
+      const API_URL = `${NGROK_BASE_URL}/api/login`;
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -70,9 +75,7 @@ export default function Login() {
 
       if (response.status === 200) {
         setErrorMessage("");
-        // Xóa dữ liệu cũ trong AsyncStorage trước khi lưu mới
         await AsyncStorage.removeItem("userInfo");
-        // Lưu trạng thái đăng nhập và thông tin người dùng
         await AsyncStorage.setItem("isLoggedIn", "true");
         const userInfo = {
           username: data.user?.username || username,
@@ -83,8 +86,15 @@ export default function Login() {
           avatarUrl: data.user?.avatarUrl || "",
         };
         await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
-        console.log("Stored userInfo:", userInfo); // Log để kiểm tra
-        navigation.navigate("Main");
+        console.log("Stored userInfo:", userInfo);
+
+        // Cập nhật trạng thái đăng nhập trong App.js
+        if (updateLoginStatus) {
+          await updateLoginStatus();
+        }
+
+        // Điều hướng đến LoginSuccess
+        navigation.navigate("LoginSuccess", { redirectTo, redirectParams }); // Sửa từ replace sang navigate
       } else {
         const msg = `❌ Đăng nhập thất bại (${response.status}):\n${
           data.error || "Lỗi không xác định"
@@ -111,7 +121,6 @@ export default function Login() {
         .then(async (userCredential) => {
           const user = userCredential.user;
           Alert.alert("Success", "Signed in with Google!");
-          // Lưu trạng thái đăng nhập và thông tin người dùng
           await AsyncStorage.setItem("isLoggedIn", "true");
           await AsyncStorage.setItem(
             "userInfo",
@@ -120,11 +129,18 @@ export default function Login() {
               fullName: user.displayName || "",
               email: user.email || "",
               phone: user.phoneNumber || "",
-              address: "", // Google không cung cấp địa chỉ, để trống
+              address: "",
               avatarUrl: user.photoURL || "",
             })
           );
-          navigation.navigate("Main");
+
+          // Cập nhật trạng thái đăng nhập trong App.js
+          if (updateLoginStatus) {
+            await updateLoginStatus();
+          }
+
+          // Điều hướng đến LoginSuccess
+          navigation.navigate("LoginSuccess", { redirectTo, redirectParams }); // Sửa từ replace sang navigate
         })
         .catch(() => Alert.alert("Error", "Google sign-in failed!"));
     }
@@ -143,7 +159,6 @@ export default function Login() {
         .then(async (userCredential) => {
           const user = userCredential.user;
           Alert.alert("Success", "Signed in with Facebook!");
-          // Lưu trạng thái đăng nhập và thông tin người dùng
           await AsyncStorage.setItem("isLoggedIn", "true");
           await AsyncStorage.setItem(
             "userInfo",
@@ -152,11 +167,18 @@ export default function Login() {
               fullName: user.displayName || "",
               email: user.email || "",
               phone: user.phoneNumber || "",
-              address: "", // Facebook không cung cấp địa chỉ, để trống
+              address: "",
               avatarUrl: user.photoURL || "",
             })
           );
-          navigation.navigate("Main");
+
+          // Cập nhật trạng thái đăng nhập trong App.js
+          if (updateLoginStatus) {
+            await updateLoginStatus();
+          }
+
+          // Điều hướng đến LoginSuccess
+          navigation.navigate("LoginSuccess", { redirectTo, redirectParams }); // Sửa từ replace sang navigate
         })
         .catch(() => Alert.alert("Error", "Facebook sign-in failed!"));
     }
@@ -166,7 +188,7 @@ export default function Login() {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate("Forget")}
+        onPress={() => navigation.navigate("Main")}
       >
         <Ionicons name="arrow-back" size={40} color="#333" />
         <Text style={styles.title}>Sign In</Text>

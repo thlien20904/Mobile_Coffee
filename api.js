@@ -6,6 +6,8 @@ const path = require("path");
 
 const app = express();
 
+require("dotenv").config();
+
 // Cấu hình CORS
 app.use(
   cors({

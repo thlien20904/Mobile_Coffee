@@ -20,7 +20,6 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    // Chuẩn hóa đuôi file thành in thường
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, uniqueSuffix + ext);
   },
@@ -164,7 +163,7 @@ router.get("/user", async (req, res) => {
 
     const user = result.recordset[0];
     if (user.avatarUrl) {
-      user.avatarUrl = `https://060e-171-251-212-26.ngrok-free.app${user.avatarUrl}`;
+      user.avatarUrl = `${process.env.NGROK_BASE_URL}${user.avatarUrl}`;
     }
 
     console.log("User info fetched successfully:", user);
@@ -265,18 +264,11 @@ router.post("/place-order", async (req, res) => {
 
     const paymentMethodId = paymentMethodResult.recordset[0].Id;
 
-    const allStatuses = await pool
-      .request()
-      .query("SELECT StatusId, StatusName FROM OrderStatus");
-    console.log("All statuses in OrderStatus:", allStatuses.recordset);
-
     const statusResult = await pool
       .request()
       .query(
         "SELECT StatusId FROM OrderStatus WHERE StatusName = N'Đặt hàng thành công'"
       );
-
-    console.log("Status query result:", statusResult.recordset);
 
     if (statusResult.recordset.length === 0) {
       return res
@@ -320,7 +312,7 @@ router.post("/place-order", async (req, res) => {
   }
 });
 
-// Api lấy lịch sử đơn
+// API lấy lịch sử đơn
 router.get("/order-history", async (req, res) => {
   const { username } = req.query;
 
@@ -440,7 +432,7 @@ router.get("/products", async (req, res) => {
         FoodName AS name,
         Price AS price,
         DiscountPrice AS discountPrice,
-        CONCAT('https://060e-171-251-212-26.ngrok-free.app', ImageURL) AS image,
+        CONCAT('${process.env.NGROK_BASE_URL}', ImageURL) AS image,
         CreatedDate AS createdDate,
         CategoryId AS categoryId,
         CASE 
@@ -477,22 +469,22 @@ router.get("/products/:id", async (req, res) => {
   try {
     const pool = await connectDB();
     const result = await pool.request().input("id", sql.Int, id).query(`
-        SELECT 
-          FoodId AS id,
-          FoodName AS name,
-          Price AS price,
-          DiscountPrice AS discountPrice,
-          ImageURL AS image,
-          Description AS description,
-          Stock AS stock,
-          CreatedDate AS createdDate,
-          CASE 
-            WHEN DATEDIFF(DAY, CreatedDate, GETDATE()) <= 7 THEN 1 
-            ELSE 0 
-          END AS isNew
-        FROM Food
-        WHERE FoodId = @id AND Status = 1
-      `);
+      SELECT 
+        FoodId AS id,
+        FoodName AS name,
+        Price AS price,
+        DiscountPrice AS discountPrice,
+        CONCAT('${process.env.NGROK_BASE_URL}', ImageURL) AS image,
+        Description AS description,
+        Stock AS stock,
+        CreatedDate AS createdDate,
+        CASE 
+          WHEN DATEDIFF(DAY, CreatedDate, GETDATE()) <= 7 THEN 1 
+          ELSE 0 
+        END AS isNew
+      FROM Food
+      WHERE FoodId = @id AND Status = 1
+    `);
 
     if (result.recordset.length === 0) {
       console.log("Product not found with ID:", id);
@@ -532,20 +524,20 @@ router.get("/cart", async (req, res) => {
     const userId = userResult.recordset[0].Id;
 
     const result = await pool.request().input("userId", sql.Int, userId).query(`
-        SELECT 
-          g.GioHangID AS gioHangId,
-          g.FoodId AS id,
-          f.FoodName AS name,
-          f.Price AS price,
-          f.DiscountPrice AS discountPrice,
-          CONCAT('https://060e-171-251-212-26.ngrok-free.app', f.ImageURL) AS image,
-          g.SoLuong AS quantity,
-          g.SizeID AS sizeId,
-          g.TotalPrice AS totalPrice
-        FROM GioHang g
-        JOIN Food f ON g.FoodId = f.FoodId
-        WHERE g.Id = @userId
-      `);
+      SELECT 
+        g.GioHangID AS gioHangId,
+        g.FoodId AS id,
+        f.FoodName AS name,
+        f.Price AS price,
+        f.DiscountPrice AS discountPrice,
+        CONCAT('${process.env.NGROK_BASE_URL}', f.ImageURL) AS image,
+        g.SoLuong AS quantity,
+        g.SizeID AS sizeId,
+        g.TotalPrice AS totalPrice
+      FROM GioHang g
+      JOIN Food f ON g.FoodId = f.FoodId
+      WHERE g.Id = @userId
+    `);
 
     res.status(200).json(result.recordset);
   } catch (err) {
@@ -690,6 +682,73 @@ router.delete("/cart/:gioHangId", async (req, res) => {
   } catch (err) {
     console.error("Error deleting cart item:", err);
     res.status(500).json({ error: "Lỗi khi xóa sản phẩm khỏi giỏ hàng." });
+  }
+});
+
+// API lấy chi tiết cửa hàng
+router.get("/stores/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "Vui lòng cung cấp ID cửa hàng." });
+  }
+
+  console.log("Fetching store with ID:", id);
+
+  try {
+    const pool = await connectDB();
+    const result = await pool.request().input("id", sql.Int, id).query(`
+      SELECT 
+        CuaHangId AS id,
+        CuaHangName AS name,
+        address,
+        opening_hours AS openingHours,
+        CONCAT('${process.env.NGROK_BASE_URL}', image_url) AS image,
+        phone,
+        created_at AS createdAt
+      FROM CuaHang
+      WHERE CuaHangId = @id
+    `);
+
+    if (result.recordset.length === 0) {
+      console.log("Store not found with ID:", id);
+      return res.status(404).json({ error: "Không tìm thấy cửa hàng." });
+    }
+
+    console.log("Store fetched successfully:", result.recordset[0]);
+    res.status(200).json(result.recordset[0]);
+  } catch (err) {
+    console.error("Error fetching store:", err);
+    res.status(500).json({ error: "Lỗi khi lấy thông tin cửa hàng." });
+  }
+});
+
+// API lấy danh sách cửa hàng
+router.get("/stores", async (req, res) => {
+  console.log("Fetching stores...");
+
+  try {
+    const pool = await connectDB();
+    const result = await pool.request().query(`
+      SELECT 
+        CuaHangId AS id,
+        CuaHangName AS name,
+        address,
+        CONCAT('${process.env.NGROK_BASE_URL}', image_url) AS image,
+        created_at AS createdAt
+      FROM CuaHang
+    `);
+
+    if (result.recordset.length === 0) {
+      console.log("No stores found");
+      return res.status(404).json({ error: "Không tìm thấy cửa hàng nào." });
+    }
+
+    console.log("Stores fetched successfully:", result.recordset);
+    res.status(200).json(result.recordset);
+  } catch (err) {
+    console.error("Error fetching stores:", err);
+    res.status(500).json({ error: "Lỗi khi lấy danh sách cửa hàng." });
   }
 });
 

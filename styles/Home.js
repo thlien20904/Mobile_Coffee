@@ -10,10 +10,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 40,
     backgroundColor: "#FFF",
     borderBottomWidth: 1,
     borderBottomColor: "#EEEEEE",
+    marginTop: -55,
+    paddingTop: 60,
   },
   headerLeft: {
     flexDirection: "row",
@@ -40,13 +42,12 @@ const styles = StyleSheet.create({
   userContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: 3,
   },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 8,
   },
   userName: {
     fontSize: 16,
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   logoutButton: {
-    padding: 8,
+    padding: -12,
   },
   logoutText: {
     fontSize: 14,
@@ -139,26 +140,28 @@ const styles = StyleSheet.create({
     color: "#E57905",
   },
   searchContainer: {
-    marginHorizontal: 16,
-    marginVertical: 10,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    borderRadius: 10,
-    elevation: 3,
+    borderRadius: 8,
+    marginHorizontal: 15,
+    marginVertical: 10,
+    paddingHorizontal: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
     padding: 10,
     fontSize: 16,
     color: "#000",
+    backgroundColor: "#FFF", // Nền trắng
   },
   searchIcon: {
     marginRight: 10,
+    color: "#E57905", // Màu icon cam để đồng bộ
   },
   menuContainer: {
     flexDirection: "row",
@@ -176,15 +179,31 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   serviceContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginBottom: 20,
+    marginVertical: 10,
+    marginHorizontal: 10,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     marginTop: 20,
+    elevation: 3,
   },
   serviceItem: {
     alignItems: "center",
-    width: "22%",
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
+  serviceIconContainer: {
+    marginBottom: 5,
+  },
+  serviceText: {
+    fontSize: 14,
+    color: "#000",
+    textAlign: "center",
   },
   paginationContainer: {
     flexDirection: "row",
@@ -256,7 +275,7 @@ const styles = StyleSheet.create({
   },
   discoverSection: {
     marginHorizontal: 16,
-    marginBottom: 20,
+    marginBottom: 0,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -283,11 +302,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderRadius: 8,
     padding: 10,
+    paddingTop: 10,
+    paddingBottom: 20,
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
   },
   offerSubtitle: {
     fontSize: 12,

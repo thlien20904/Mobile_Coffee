@@ -9,6 +9,8 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { NGROK_BASE_URL } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Thêm import AsyncStorage
 import styles from "../styles/ProductDetail";
 
 // Ảnh mặc định (fallback) nếu không tải được ảnh từ URL
@@ -20,10 +22,26 @@ export default function ProductDetail({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Thêm state để kiểm tra đăng nhập
 
   // Base URL của server chứa ảnh (không có dấu / ở cuối)
-  const BASE_IMAGE_URL = "https://060e-171-251-212-26.ngrok-free.app"; // Cập nhật URL ngrok mới
+  const BASE_IMAGE_URL = NGROK_BASE_URL;
 
+  // Kiểm tra trạng thái đăng nhập khi component mount
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = await AsyncStorage.getItem("isLoggedIn");
+        setIsLoggedIn(loggedIn === "true");
+      } catch (error) {
+        console.error("Error checking login status:", error);
+        setIsLoggedIn(false);
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
+  // Gọi API để lấy chi tiết sản phẩm
   useEffect(() => {
     const fetchProductDetail = async () => {
       const API_URL = `${BASE_IMAGE_URL}/api/products/${productId}`;
@@ -52,9 +70,7 @@ export default function ProductDetail({ route, navigation }) {
 
         // Xử lý đường dẫn ảnh
         if (data.image && !data.image.startsWith("http")) {
-          // Loại bỏ dấu / thừa ở đầu và cuối
           const cleanImagePath = data.image.replace(/^\/+|\/+$/g, "");
-          // Nếu đường dẫn chưa bắt đầu bằng "images/", thêm vào
           if (!cleanImagePath.startsWith("images/")) {
             data.image = `${BASE_IMAGE_URL}/images/${cleanImagePath}`;
           } else {
@@ -83,36 +99,78 @@ export default function ProductDetail({ route, navigation }) {
     }
   };
 
-  const handleAddToCart = () => {
+  // Hàm xử lý thêm vào giỏ hàng
+  const handleAddToCart = async () => {
     if (!product) return;
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price:
-        product.discountPrice && product.discountPrice > 0
-          ? product.discountPrice
-          : product.price,
-      quantity: quantity,
-      image: product.image,
-    };
-    console.log(`Thêm ${quantity} sản phẩm "${product.name}" vào giỏ hàng`);
-    navigation.navigate("Cart", { newItem: cartItem });
+
+    if (isLoggedIn) {
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        price:
+          product.discountPrice && product.discountPrice > 0
+            ? product.discountPrice
+            : product.price,
+        quantity: quantity,
+        image: product.image,
+      };
+      console.log(`Thêm ${quantity} sản phẩm "${product.name}" vào giỏ hàng`);
+      navigation.navigate("Cart", { newItem: cartItem });
+    } else {
+      // Điều hướng đến Login và truyền thông tin màn hình đích
+      navigation.navigate("Login", {
+        redirectTo: "Cart",
+        redirectParams: {
+          newItem: {
+            id: product.id,
+            name: product.name,
+            price:
+              product.discountPrice && product.discountPrice > 0
+                ? product.discountPrice
+                : product.price,
+            quantity: quantity,
+            image: product.image,
+          },
+        },
+      });
+    }
   };
 
-  const handleBuyNow = () => {
+  // Hàm xử lý mua ngay
+  const handleBuyNow = async () => {
     if (!product) return;
-    const buyItem = {
-      id: product.id,
-      name: product.name,
-      price:
-        product.discountPrice && product.discountPrice > 0
-          ? product.discountPrice
-          : product.price,
-      quantity: quantity,
-      image: product.image,
-    };
-    console.log(`Mua ngay ${quantity} sản phẩm "${product.name}"`);
-    navigation.navigate("Checkout", { buyItem });
+
+    if (isLoggedIn) {
+      const buyItem = {
+        id: product.id,
+        name: product.name,
+        price:
+          product.discountPrice && product.discountPrice > 0
+            ? product.discountPrice
+            : product.price,
+        quantity: quantity,
+        image: product.image,
+      };
+      console.log(`Mua ngay ${quantity} sản phẩm "${product.name}"`);
+      navigation.navigate("Checkout", { buyItem });
+    } else {
+      // Điều hướng đến Login và truyền thông tin màn hình đích
+      navigation.navigate("Login", {
+        redirectTo: "Checkout",
+        redirectParams: {
+          buyItem: {
+            id: product.id,
+            name: product.name,
+            price:
+              product.discountPrice && product.discountPrice > 0
+                ? product.discountPrice
+                : product.price,
+            quantity: quantity,
+            image: product.image,
+          },
+        },
+      });
+    }
   };
 
   if (loading) {

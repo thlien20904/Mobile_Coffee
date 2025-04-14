@@ -4,12 +4,12 @@ import {
   Text,
   TouchableOpacity,
   SafeAreaView,
-  ScrollView,
-  Alert,
   FlatList,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/OrderHistory";
 
 // Component con cho OrderItem
@@ -65,13 +65,13 @@ const MemoizedOrder = React.memo(({ order }) => {
   );
 });
 
-export default function OrderHistory({ navigation }) {
-  const [orders, setOrders] = useState([]);
+export default function OrderHistory({ navigation, route }) {
+  const [allOrders, setAllOrders] = useState([]); // Lưu toàn bộ đơn hàng
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
-  const [totalPages, setTotalPages] = useState(1); // Tổng số trang
-  const limit = 5; // Số đơn hàng mỗi trang
+  const ordersPerPage = 2; // Số đơn hàng tối đa mỗi trang
 
-  const fetchOrderHistory = async (page = 1) => {
+  // Lấy toàn bộ đơn hàng từ API
+  const fetchOrderHistory = async () => {
     try {
       // Lấy username từ AsyncStorage
       const storedUserInfo = await AsyncStorage.getItem("userInfo");
@@ -91,8 +91,8 @@ export default function OrderHistory({ navigation }) {
         return;
       }
 
-      // Gọi API để lấy lịch sử đơn hàng với phân trang
-      const API_URL = `https://060e-171-251-212-26.ngrok-free.app/api/order-history?username=${username}&page=${page}&limit=${limit}`;
+      // Gọi API để lấy tất cả lịch sử đơn hàng
+      const API_URL = `${NGROK_BASE_URL}/api/order-history?username=${username}`;
       const response = await fetch(API_URL, {
         method: "GET",
         headers: {
@@ -110,9 +110,7 @@ export default function OrderHistory({ navigation }) {
 
       const data = await response.json();
       if (response.status === 200) {
-        setOrders(data.data.orders || []); // Dữ liệu đơn hàng
-        setTotalPages(data.data.totalPages || 1); // Tổng số trang
-        setCurrentPage(page); // Cập nhật trang hiện tại
+        setAllOrders(data.data.orders || []); // Lưu toàn bộ đơn hàng
       } else {
         console.error("Error fetching order history from API:", data.error);
         Alert.alert("Lỗi", "Không thể lấy lịch sử đơn hàng từ server.");
@@ -124,20 +122,25 @@ export default function OrderHistory({ navigation }) {
   };
 
   useEffect(() => {
-    fetchOrderHistory(1); // Lấy trang đầu tiên khi component mount
+    fetchOrderHistory(); // Lấy tất cả đơn hàng khi component mount
   }, [navigation]);
 
-  // Chuyển đến trang trước
-  const handlePrevPage = () => {
+  // Tính toán đơn hàng hiển thị theo trang
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = allOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(allOrders.length / ordersPerPage);
+
+  // Hàm chuyển trang
+  const goToPreviousPage = () => {
     if (currentPage > 1) {
-      fetchOrderHistory(currentPage - 1);
+      setCurrentPage(currentPage - 1);
     }
   };
 
-  // Chuyển đến trang sau
-  const handleNextPage = () => {
+  const goToNextPage = () => {
     if (currentPage < totalPages) {
-      fetchOrderHistory(currentPage + 1);
+      setCurrentPage(currentPage + 1);
     }
   };
 
@@ -154,7 +157,7 @@ export default function OrderHistory({ navigation }) {
       </View>
 
       <FlatList
-        data={orders}
+        data={currentOrders}
         renderItem={({ item }) => <MemoizedOrder order={item} />}
         keyExtractor={(item) => item.OrderId.toString()}
         ListEmptyComponent={
@@ -164,14 +167,14 @@ export default function OrderHistory({ navigation }) {
       />
 
       {/* Phân trang */}
-      {orders.length > 0 && (
+      {allOrders.length > 0 && (
         <View style={styles.paginationContainer}>
           <TouchableOpacity
             style={[
               styles.paginationButton,
               currentPage === 1 && styles.paginationButtonDisabled,
             ]}
-            onPress={handlePrevPage}
+            onPress={goToPreviousPage}
             disabled={currentPage === 1}
           >
             <Ionicons
@@ -191,7 +194,7 @@ export default function OrderHistory({ navigation }) {
               styles.paginationButton,
               currentPage === totalPages && styles.paginationButtonDisabled,
             ]}
-            onPress={handleNextPage}
+            onPress={goToNextPage}
             disabled={currentPage === totalPages}
           >
             <Text style={styles.paginationText}>Trang sau</Text>

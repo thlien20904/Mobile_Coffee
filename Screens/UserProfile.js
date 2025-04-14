@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
+import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/UserProfile";
 
 export default function UserProfile({ navigation }) {
@@ -29,7 +30,7 @@ export default function UserProfile({ navigation }) {
   const [imageError, setImageError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const BASE_URL = "https://060e-171-251-212-26.ngrok-free.app";
+  const BASE_URL = NGROK_BASE_URL;
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -93,7 +94,7 @@ export default function UserProfile({ navigation }) {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["image"], // Thay đổi từ ImagePicker.MediaTypeOptions.Images thành ['image']
+        mediaTypes: ["image"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 1,
@@ -191,7 +192,7 @@ export default function UserProfile({ navigation }) {
       <TouchableWithoutFeedback onPress={dismissKeyboard}>
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.navigate("Main")} // Sửa từ goBack() sang navigate("Main")
             style={styles.backButton}
           >
             <Ionicons name="arrow-back" size={24} color="#000" />

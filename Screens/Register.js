@@ -25,6 +25,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
 } from "firebase/auth";
+import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/Register";
 
 // Cấu hình Firebase
@@ -58,7 +59,7 @@ export default function SignUp() {
     }
 
     try {
-      const API_URL = "https://060e-171-251-212-26.ngrok-free.app/api/register";
+      const API_URL = `${NGROK_BASE_URL}/api/register`;
 
       const response = await fetch(API_URL, {
         method: "POST",

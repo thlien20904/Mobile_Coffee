@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/Checkout";
 
 // Component TextInput được memoized và hỗ trợ ref
@@ -84,7 +85,7 @@ export default function Checkout({ route, navigation }) {
         }
 
         if (username) {
-          const API_URL = `https://060e-171-251-212-26.ngrok-free.app/api/user?username=${username}`;
+          const API_URL = `${NGROK_BASE_URL}/api/user?username=${username}`;
           const response = await fetch(API_URL, {
             method: "GET",
             headers: {
@@ -146,8 +147,7 @@ export default function Checkout({ route, navigation }) {
         address: tempUserInfo.address,
       };
 
-      const API_URL =
-        "https://060e-171-251-212-26.ngrok-free.app/api/update-user";
+      const API_URL = `${NGROK_BASE_URL}/api/update-user`; // Sửa URL
       const response = await fetch(API_URL, {
         method: "PUT",
         headers: {
@@ -205,8 +205,7 @@ export default function Checkout({ route, navigation }) {
         deliveryAddress: deliveryAddress,
       };
 
-      const API_URL =
-        "https://060e-171-251-212-26.ngrok-free.app/api/place-order";
+      const API_URL = `${NGROK_BASE_URL}/api/place-order`; // Sửa URL
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -244,7 +243,7 @@ export default function Checkout({ route, navigation }) {
           style={styles.backButton}
           onPress={() => {
             Keyboard.dismiss(); // Ẩn bàn phím khi nhấn nút Back
-            navigation.goBack();
+            navigation.navigate("Main"); // Sửa từ goBack() sang navigate("Main")
           }}
         >
           <Ionicons name="arrow-back" size={24} color="#000" />

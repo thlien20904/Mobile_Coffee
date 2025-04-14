@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,23 +11,55 @@ import Feather from "react-native-vector-icons/Feather";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AntDesign from "react-native-vector-icons/AntDesign";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../styles/More";
 
-const More = () => {
+const More = ({ route }) => {
   const navigation = useNavigation();
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    route.params?.isLoggedIn || false
+  );
+
+  // Cập nhật isLoggedIn khi route.params thay đổi
+  useEffect(() => {
+    if (route.params?.isLoggedIn !== undefined) {
+      setIsLoggedIn(route.params.isLoggedIn);
+    }
+  }, [route.params?.isLoggedIn]);
+
+  // Kiểm tra AsyncStorage như dự phòng
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = await AsyncStorage.getItem("isLoggedIn");
+        console.log("isLoggedIn in More:", loggedIn); // Debug
+        setIsLoggedIn(loggedIn === "true");
+      } catch (error) {
+        console.error("Error checking login status:", error);
+        setIsLoggedIn(false);
+      }
+    };
+    checkLoginStatus();
+  }, []);
 
   const Header = () => (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Khác</Text>
       <View style={styles.headerRight}>
-        <View style={styles.ticketContainer}>
+        <TouchableOpacity
+          style={styles.ticketContainer}
+          onPress={() => navigation.navigate("Voucher")}
+        >
           <MaterialIcons name="confirmation-number" size={20} color="#d17842" />
           <Text style={styles.ticketText}>6</Text>
-        </View>
-        <View style={styles.notificationContainer}>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.notificationContainer}
+          onPress={() => navigation.navigate("NotificationScreen")}
+        >
           <Ionicons name="notifications-outline" size={24} color="#000" />
           <View style={styles.badge} />
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -51,6 +83,61 @@ const More = () => {
     </TouchableOpacity>
   );
 
+  const handleNavigation = (screen, params = {}) => {
+    console.log(`Navigating to ${screen}, isLoggedIn: ${isLoggedIn}`); // Debug
+    if (isLoggedIn) {
+      navigation.navigate(screen, params);
+    } else {
+      navigation.navigate("Login", {
+        redirectTo: screen,
+        redirectParams: params,
+      });
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Xóa AsyncStorage
+      await AsyncStorage.removeItem("isLoggedIn");
+      await AsyncStorage.removeItem("userInfo");
+
+      // Kiểm tra xem AsyncStorage đã xóa sạch chưa
+      const loggedIn = await AsyncStorage.getItem("isLoggedIn");
+      const userInfo = await AsyncStorage.getItem("userInfo");
+      console.log(
+        "After logout - isLoggedIn:",
+        loggedIn,
+        "userInfo:",
+        userInfo
+      ); // Debug
+
+      // Cập nhật state
+      setIsLoggedIn(false);
+
+      // Gọi updateLoginStatus để đồng bộ App.js
+      if (route.params?.updateLoginStatus) {
+        await route.params.updateLoginStatus();
+      }
+
+      // Reset stack về Main để làm mới MainTabs
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main", params: { isLoggedIn: false } }],
+      });
+
+      console.log("Đã đăng xuất và reset về Main");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  const handleLogin = () => {
+    navigation.navigate("Login", {
+      redirectTo: "Home",
+      redirectParams: {},
+    });
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
@@ -61,7 +148,7 @@ const More = () => {
           <TienIchItem
             icon={<MaterialIcons name="receipt" size={24} color="#d17842" />}
             title="Lịch sử đơn hàng"
-            onPress={() => navigation.navigate("OrderHistory")}
+            onPress={() => handleNavigation("OrderHistory")}
           />
           <TienIchItem
             icon={
@@ -86,6 +173,7 @@ const More = () => {
           <MenuItem
             icon={<AntDesign name="star" size={20} color="#000" />}
             title="Đánh giá đơn hàng"
+            onPress={() => handleNavigation("Reviews")}
           />
           <MenuItem
             icon={<Ionicons name="chatbubble-outline" size={20} color="#000" />}
@@ -104,11 +192,12 @@ const More = () => {
           <MenuItem
             icon={<Feather name="user" size={20} color="#000" />}
             title="Thông tin cá nhân"
-            onPress={() => navigation.navigate("UserProfile")}
+            onPress={() => handleNavigation("UserProfile")}
           />
           <MenuItem
             icon={<Feather name="bookmark" size={20} color="#000" />}
-            title="Địa chỉ đã lưu"
+            title="Địa chỉ"
+            onPress={() => handleNavigation("MyAddresses")}
           />
           <MenuItem
             icon={<Feather name="settings" size={20} color="#000" />}
@@ -116,8 +205,15 @@ const More = () => {
             onPress={() => navigation.navigate("Settings")}
           />
           <MenuItem
-            icon={<Feather name="log-out" size={20} color="#000" />}
-            title="Đăng xuất"
+            icon={
+              <Feather
+                name={isLoggedIn ? "log-out" : "log-in"}
+                size={20}
+                color="#000"
+              />
+            }
+            title={isLoggedIn ? "Đăng xuất" : "Đăng nhập"}
+            onPress={isLoggedIn ? handleLogout : handleLogin}
           />
         </View>
       </ScrollView>

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/Cart";
 
 const defaultImage = require("../assets/banner.png");
@@ -19,7 +20,7 @@ export default function Cart({ route, navigation }) {
   const [cartItems, setCartItems] = useState([]);
   const [username, setUsername] = useState(null);
 
-  // Lấy username từ AsyncStorage
+  // Lấy username từ AsyncStorage và kiểm tra đăng nhập
   useEffect(() => {
     const getUserInfo = async () => {
       try {
@@ -27,13 +28,22 @@ export default function Cart({ route, navigation }) {
         if (user) {
           const parsedUser = JSON.parse(user);
           setUsername(parsedUser.username);
+        } else {
+          console.error("No user info found in AsyncStorage");
+          Alert.alert(
+            "Lỗi",
+            "Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại."
+          );
+          navigation.navigate("Login");
         }
       } catch (error) {
         console.error("Error getting user info:", error);
+        Alert.alert("Lỗi", "Đã xảy ra lỗi khi kiểm tra thông tin người dùng.");
+        navigation.navigate("Login");
       }
     };
     getUserInfo();
-  }, []);
+  }, [navigation]);
 
   // Lấy giỏ hàng từ API khi username đã có
   useEffect(() => {
@@ -42,7 +52,7 @@ export default function Cart({ route, navigation }) {
 
       try {
         const response = await fetch(
-          `https://060e-171-251-212-26.ngrok-free.app/api/cart?username=${username}`,
+          `${NGROK_BASE_URL}/api/cart?username=${username}`,
           {
             method: "GET",
             headers: {
@@ -77,27 +87,24 @@ export default function Cart({ route, navigation }) {
           : newItem.price;
 
       try {
-        const response = await fetch(
-          "https://060e-171-251-212-26.ngrok-free.app/api/cart",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username,
-              foodId: newItem.id,
-              quantity: newItem.quantity,
-              price,
-            }),
-          }
-        );
+        const response = await fetch(`${NGROK_BASE_URL}/api/cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            foodId: newItem.id,
+            quantity: newItem.quantity,
+            price,
+          }),
+        });
 
         const data = await response.json();
         if (response.ok) {
           // Sau khi thêm thành công, gọi lại API để lấy giỏ hàng mới
           const fetchResponse = await fetch(
-            `https://060e-171-251-212-26.ngrok-free.app/api/cart?username=${username}`
+            `${NGROK_BASE_URL}/api/cart?username=${username}`
           );
           const fetchData = await fetchResponse.json();
           if (fetchResponse.ok) {
@@ -122,19 +129,16 @@ export default function Cart({ route, navigation }) {
     const newQuantity = item.quantity + 1;
 
     try {
-      const response = await fetch(
-        `https://060e-171-251-212-26.ngrok-free.app/api/cart/${gioHangId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            quantity: newQuantity,
-            price,
-          }),
-        }
-      );
+      const response = await fetch(`${NGROK_BASE_URL}/api/cart/${gioHangId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quantity: newQuantity,
+          price,
+        }),
+      });
 
       const data = await response.json();
       if (response.ok) {
@@ -167,19 +171,16 @@ export default function Cart({ route, navigation }) {
     const newQuantity = item.quantity - 1;
 
     try {
-      const response = await fetch(
-        `https://060e-171-251-212-26.ngrok-free.app/api/cart/${gioHangId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            quantity: newQuantity,
-            price,
-          }),
-        }
-      );
+      const response = await fetch(`${NGROK_BASE_URL}/api/cart/${gioHangId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quantity: newQuantity,
+          price,
+        }),
+      });
 
       const data = await response.json();
       if (response.ok) {
@@ -207,15 +208,12 @@ export default function Cart({ route, navigation }) {
 
   const removeItem = async (gioHangId) => {
     try {
-      const response = await fetch(
-        `https://060e-171-251-212-26.ngrok-free.app/api/cart/${gioHangId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${NGROK_BASE_URL}/api/cart/${gioHangId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       const data = await response.json();
       if (response.ok) {
@@ -290,7 +288,7 @@ export default function Cart({ route, navigation }) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("Main")}
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -302,7 +300,7 @@ export default function Cart({ route, navigation }) {
           <Text style={styles.emptyCartText}>Giỏ hàng của bạn đang trống!</Text>
           <TouchableOpacity
             style={styles.continueShoppingButton}
-            onPress={() => navigation.navigate("Home")}
+            onPress={() => navigation.navigate("Main")} // Sửa từ navigate("Home") sang navigate("Main")
           >
             <Text style={styles.continueShoppingText}>Tiếp tục mua sắm</Text>
           </TouchableOpacity>
