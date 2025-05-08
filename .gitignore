@@ -1,1 +1,8 @@
 node_modules
+.env
+key.pem
+cert.pem
+GoogleService-Info.plist
+firebaseConfig.js
+socialRoutes.js
+*.sql

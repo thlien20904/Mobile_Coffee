@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Linking,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { NGROK_BASE_URL } from "@env";
+import styles from "../styles/Register";
 
 const Register = () => {
   const navigation = useNavigation();
@@ -23,19 +16,16 @@ const Register = () => {
   const [address, setAddress] = useState("");
   const [errors, setErrors] = useState({});
 
-  // Hàm kiểm tra định dạng email
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Hàm kiểm tra định dạng số điện thoại
   const validatePhone = (phone) => {
     const phoneRegex = /^[0-9]{10}$/;
     return phoneRegex.test(phone);
   };
 
-  // Hàm kiểm tra username có tồn tại không
   const checkUsernameExists = async (username) => {
     try {
       const response = await fetch(`${NGROK_BASE_URL}/api/check-username`, {
@@ -53,7 +43,6 @@ const Register = () => {
     }
   };
 
-  // Hàm kiểm tra email có tồn tại không
   const checkEmailExists = async (email) => {
     try {
       const response = await fetch(`${NGROK_BASE_URL}/api/check-email`, {
@@ -71,7 +60,6 @@ const Register = () => {
     }
   };
 
-  // Hàm kiểm tra giá trị nhập liệu và cập nhật lỗi
   const validateField = async (field, value) => {
     let newErrors = { ...errors };
 
@@ -143,9 +131,7 @@ const Register = () => {
     setErrors(newErrors);
   };
 
-  // Xử lý đăng ký
   const handleRegister = async () => {
-    // Kiểm tra tất cả các trường trước khi gửi yêu cầu
     await validateField("username", username);
     await validateField("email", email);
     await validateField("password", password);
@@ -217,7 +203,6 @@ const Register = () => {
     }
   };
 
-  // Xử lý đăng nhập bằng Google
   const handleGoogleLogin = async () => {
     try {
       await Linking.openURL("https://accounts.google.com/signin");
@@ -249,7 +234,6 @@ const Register = () => {
     }
   };
 
-  // Xử lý đăng nhập bằng Facebook
   const handleFacebookLogin = async () => {
     try {
       await Linking.openURL("https://www.facebook.com/login");
@@ -284,8 +268,11 @@ const Register = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={34} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>Create Account</Text>
       </View>
@@ -400,73 +387,5 @@ const Register = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginLeft: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-  },
-  loginLink: {
-    color: "#00C4B4",
-    fontWeight: "bold",
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    fontSize: 16,
-  },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginBottom: 10,
-    marginLeft: 5,
-  },
-  button: {
-    backgroundColor: "#00C4B4",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  facebookButton: {
-    backgroundColor: "#3b5998",
-  },
-  googleButton: {
-    backgroundColor: "#4285F4",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  orText: {
-    textAlign: "center",
-    fontSize: 16,
-    color: "#666",
-    marginVertical: 10,
-  },
-});
 
 export default Register;

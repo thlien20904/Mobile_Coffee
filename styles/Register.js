@@ -1,117 +1,80 @@
-// styles/Register.js
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 25,
-    backgroundColor: "#F8F9FA",
-    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#fff",
+    paddingTop: 20,
   },
-  headerSection: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 30,
+    justifyContent: "center",
+    marginBottom: 20,
+    paddingTop: 0,
+    marginTop: 30,
+    position: "relative", // Để dùng position: "absolute" cho nút back
   },
   backButton: {
     padding: 5,
+    position: "absolute",
+    left: 0, // Căn bên trái
   },
+
   title: {
-    fontSize: 35,
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginLeft: 80,
-  },
-  header: {
-    fontSize: 25,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 18,
     color: "#666",
-    marginBottom: 25,
+    marginBottom: 20,
   },
-  link: {
-    color: "#077F7B",
+  loginLink: {
+    color: "#00C4B4",
     fontWeight: "bold",
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    marginVertical: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  icon: {
-    marginRight: 10,
+    marginBottom: 20,
   },
   input: {
-    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
     fontSize: 16,
   },
-  signUpButton: {
-    backgroundColor: "#077F7B",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginVertical: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+  errorText: {
+    color: "red",
+    fontSize: 16,
+    marginBottom: 10,
+    marginLeft: 5,
   },
-  signUpText: {
-    color: "white",
-    fontSize: 18,
+  button: {
+    backgroundColor: "#00C4B4",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  facebookButton: {
+    backgroundColor: "#3b5998",
+  },
+  googleButton: {
+    backgroundColor: "#4285F4",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "bold",
   },
   orText: {
     textAlign: "center",
-    marginVertical: 15,
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#888",
-  },
-  haveaccountText: {
-    fontSize: 14,
-    top: -30,
-    color: "#077F7B",
-    fontWeight: "bold",
-  },
-  facebookButton: {
-    flexDirection: "row",
-    backgroundColor: "#4a61a8",
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 5,
-  },
-  googleButton: {
-    flexDirection: "row",
-    backgroundColor: "#53a0f4",
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 5,
-  },
-  socialText: {
-    color: "white",
     fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 10,
+    color: "#666",
+    marginVertical: 10,
   },
 });
 
