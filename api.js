@@ -23,17 +23,6 @@ app.use(express.static(path.join(__dirname, "public")));
 // Phục vụ file tĩnh từ thư mục "images" (cho ảnh sản phẩm)
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-// Middleware để thêm header CORS cho các tài nguyên tĩnh (tùy chọn)
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
-
 app.use(express.json());
 
 // Sử dụng routes

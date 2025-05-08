@@ -157,26 +157,11 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     color: "#000",
-    backgroundColor: "#FFF", // Nền trắng
+    backgroundColor: "#FFF",
   },
   searchIcon: {
     marginRight: 10,
-    color: "#E57905", // Màu icon cam để đồng bộ
-  },
-  menuContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  menuItem: {
-    alignItems: "center",
-    width: "16%",
-  },
-  menuText: {
-    textAlign: "center",
-    fontSize: 12,
-    color: "#000",
+    color: "#E57905",
   },
   serviceContainer: {
     marginVertical: 10,
@@ -196,39 +181,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 10,
     marginTop: 10,
-  },
-  serviceIconContainer: {
-    marginBottom: 5,
-  },
-  serviceText: {
-    fontSize: 14,
-    color: "#000",
-    textAlign: "center",
-  },
-  paginationContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  pageButton: {
-    backgroundColor: "#E57905",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 5,
-    marginHorizontal: 10,
-  },
-  pageButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  pageInfo: {
-    fontSize: 16,
-    color: "#777",
-  },
-  disabledButton: {
-    backgroundColor: "#ccc",
   },
   serviceIconContainer: {
     width: 50,
@@ -366,9 +318,10 @@ const styles = StyleSheet.create({
   productSection: {
     marginHorizontal: 16,
     marginVertical: 10,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+  },
+  productList: {
+    flexGrow: 1,
+    paddingBottom: 10,
   },
   productCard: {
     width: "48%",

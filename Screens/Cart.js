@@ -102,7 +102,7 @@ export default function Cart({ route, navigation }) {
 
         const data = await response.json();
         if (response.ok) {
-          // Sau khi thêm thành công, gọi lại API để lấy giỏ hàng mới
+          console.log("Thêm sản phẩm vào giỏ hàng thành công!");
           const fetchResponse = await fetch(
             `${NGROK_BASE_URL}/api/cart?username=${username}`
           );
@@ -240,7 +240,7 @@ export default function Cart({ route, navigation }) {
     navigation.navigate("Checkout", { buyItems: cartItems });
   };
 
-  const renderCartItem = ({ item }) => (
+  const CartItem = React.memo(({ item }) => (
     <View style={styles.cartItem}>
       <Image
         source={{ uri: item.image, cache: "reload" }}
@@ -281,7 +281,9 @@ export default function Cart({ route, navigation }) {
         <Ionicons name="trash-outline" size={24} color="#FF0000" />
       </TouchableOpacity>
     </View>
-  );
+  ));
+
+  const renderCartItem = ({ item }) => <CartItem item={item} />;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -300,7 +302,7 @@ export default function Cart({ route, navigation }) {
           <Text style={styles.emptyCartText}>Giỏ hàng của bạn đang trống!</Text>
           <TouchableOpacity
             style={styles.continueShoppingButton}
-            onPress={() => navigation.navigate("Main")} // Sửa từ navigate("Home") sang navigate("Main")
+            onPress={() => navigation.navigate("Main")}
           >
             <Text style={styles.continueShoppingText}>Tiếp tục mua sắm</Text>
           </TouchableOpacity>
@@ -312,6 +314,9 @@ export default function Cart({ route, navigation }) {
             renderItem={renderCartItem}
             keyExtractor={(item) => item.gioHangId.toString()}
             contentContainerStyle={styles.cartList}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
           />
           <View style={styles.footer}>
             <Text style={styles.totalText}>

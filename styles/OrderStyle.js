@@ -1,19 +1,23 @@
 import { StyleSheet } from "react-native";
+import { Platform } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FEF8EF",
+    backgroundColor: "#FFF",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 10,
     backgroundColor: "#FFF",
     borderBottomWidth: 1,
     borderBottomColor: "#EEEEEE",
+    paddingTop: Platform.OS === "ios" ? 50 : 30,
+    marginTop: -40,
   },
   headerText: {
     fontSize: 18,

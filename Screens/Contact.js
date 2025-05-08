@@ -11,13 +11,15 @@ const Contact = () => {
 
   const Header = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+      >
         <Feather name="arrow-left" size={30} color="#000" />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>Liên hệ và góp ý</Text>
     </View>
   );
-  
 
   const ContactItem = ({ icon, title, value, showChevron = true }) => (
     <TouchableOpacity style={styles.contactItem}>
@@ -42,17 +44,17 @@ const Contact = () => {
         <ContactItem
           icon={<MaterialIcons name="email" size={22} color="#000" />}
           title="Email"
-          value="hi@thecoffeehouse.vn"
+          value="hi@sulicoffee.vn"
         />
         <ContactItem
           icon={<MaterialIcons name="language" size={22} color="#000" />}
           title="Website"
-          value="www.thecoffeehouse.com"
+          value="www.sulicoffee.com"
         />
         <ContactItem
           icon={<FontAwesome name="facebook" size={22} color="#000" />}
           title="Facebook"
-          value="facebook.com/The.Coffee.House.2014"
+          value="facebook.com/Suli.Coffee.2025"
         />
         <TouchableOpacity style={styles.feedbackButton}>
           <MaterialIcons name="warning" size={22} color="#000" />

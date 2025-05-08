@@ -12,19 +12,16 @@ const router = express.Router();
 
 router.use(cors());
 
-// Cấu hình Nodemailer (thay bằng thông tin SMTP của bạn)
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER || "your-email@gmail.com",
-    pass: process.env.EMAIL_PASS || "your-app-password",
+    user: "thuylien2k4@gmail.com",
+    pass: "sjxtrgqgodaomlir",
   },
 });
 
-// Lưu trữ OTP tạm thời (nên dùng Redis trong thực tế)
 const otps = {};
 
-// Cấu hình multer để lưu ảnh
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = "public/images/avatar";
@@ -54,10 +51,9 @@ const upload = multer({
       cb(new Error("Chỉ hỗ trợ file ảnh (jpeg, jpg, png)!"));
     }
   },
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-// API gửi mã OTP để đặt lại mật khẩu
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 
@@ -67,8 +63,6 @@ router.post("/forgot-password", async (req, res) => {
 
   try {
     const pool = await connectDB();
-
-    // Kiểm tra xem email có tồn tại không
     const userResult = await pool
       .request()
       .input("email", sql.NVarChar, email)
@@ -78,15 +72,20 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(404).json({ error: "Email không tồn tại." });
     }
 
-    // Tạo mã OTP
     const otp = crypto.randomInt(100000, 999999).toString();
-    otps[email] = { code: otp, expires: Date.now() + 5 * 60 * 1000 }; // OTP hết hạn sau 5 phút
+    otps[email] = { code: otp, expires: Date.now() + 5 * 60 * 1000 };
 
-    // Trả về OTP trực tiếp trong phản hồi thay vì gửi email
+    const mailOptions = {
+      from: "thuylien2k4@gmail.com",
+      to: email,
+      subject: "Mã OTP để đặt lại mật khẩu",
+      text: `Mã OTP của bạn là: ${otp}. Mã này có hiệu lực trong 5 phút.`,
+    };
+
+    await transporter.sendMail(mailOptions);
     res.status(200).json({
       message:
-        "Mã OTP đã được tạo. Kiểm tra mã OTP dưới đây (do gửi email không hoạt động).",
-      otp: otp, // Trả về OTP để kiểm tra
+        "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư hoặc thư rác.",
     });
   } catch (err) {
     console.error("Lỗi trong forgot-password:", err);
@@ -94,7 +93,6 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// API xác minh mã OTP
 router.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
 
@@ -122,7 +120,6 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ error: "Mã OTP không hợp lệ." });
     }
 
-    // Xóa OTP sau khi xác minh thành công
     delete otps[email];
     res.status(200).json({ message: "Xác minh OTP thành công." });
   } catch (err) {
@@ -131,7 +128,6 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
-// API đặt lại mật khẩu
 router.post("/reset-password", async (req, res) => {
   const { email, password } = req.body;
 
@@ -141,10 +137,17 @@ router.post("/reset-password", async (req, res) => {
       .json({ error: "Vui lòng cung cấp email và mật khẩu mới." });
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: "Email không đúng định dạng." });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Mật khẩu phải có ít nhất 6 ký tự." });
+  }
+
   try {
     const pool = await connectDB();
-
-    // Kiểm tra xem email có tồn tại không
     const userResult = await pool
       .request()
       .input("email", sql.NVarChar, email)
@@ -154,11 +157,9 @@ router.post("/reset-password", async (req, res) => {
       return res.status(404).json({ error: "Email không tồn tại." });
     }
 
-    // Mã hóa mật khẩu mới
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Cập nhật mật khẩu
     await pool
       .request()
       .input("email", sql.NVarChar, email)
@@ -173,7 +174,59 @@ router.post("/reset-password", async (req, res) => {
     res.status(500).json({ error: "Lỗi khi cập nhật mật khẩu." });
   }
 });
-// API đăng ký người dùng mới
+
+router.post("/check-username", async (req, res) => {
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ error: "Vui lòng cung cấp tên người dùng." });
+  }
+
+  try {
+    const pool = await connectDB();
+    const result = await pool
+      .request()
+      .input("username", sql.NVarChar, username)
+      .query("SELECT * FROM Users WHERE Username = @username");
+
+    if (result.recordset.length > 0) {
+      res
+        .status(400)
+        .json({ exists: true, message: "Tên người dùng đã được sử dụng." });
+    } else {
+      res.status(200).json({ exists: false });
+    }
+  } catch (err) {
+    console.error("Lỗi khi kiểm tra username:", err);
+    res.status(500).json({ error: "Lỗi server." });
+  }
+});
+
+router.post("/check-email", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Vui lòng cung cấp email." });
+  }
+
+  try {
+    const pool = await connectDB();
+    const result = await pool
+      .request()
+      .input("email", sql.NVarChar, email)
+      .query("SELECT * FROM Users WHERE Email = @email");
+
+    if (result.recordset.length > 0) {
+      res.status(400).json({ exists: true, message: "Email đã được sử dụng." });
+    } else {
+      res.status(200).json({ exists: false });
+    }
+  } catch (err) {
+    console.error("Lỗi khi kiểm tra email:", err);
+    res.status(500).json({ error: "Lỗi server." });
+  }
+});
+
 router.post("/register", async (req, res) => {
   const { username, email, password, fullName, phone, address } = req.body;
 
@@ -195,20 +248,34 @@ router.post("/register", async (req, res) => {
       );
 
     if (existingUser.recordset.length > 0) {
-      return res
-        .status(400)
-        .json({ error: "Tên người dùng hoặc email đã được sử dụng." });
+      const existingUsername = existingUser.recordset.some(
+        (user) => user.Username === username
+      );
+      const existingEmail = existingUser.recordset.some(
+        (user) => user.Email === email
+      );
+
+      if (existingUsername && existingEmail) {
+        return res
+          .status(400)
+          .json({ error: "Tên người dùng và email đã được sử dụng." });
+      } else if (existingUsername) {
+        return res
+          .status(400)
+          .json({ error: "Tên người dùng đã được sử dụng." });
+      } else {
+        return res.status(400).json({ error: "Email đã được sử dụng." });
+      }
     }
 
-    // Mã hóa mật khẩu
     const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     await pool
       .request()
       .input("username", sql.NVarChar, username)
       .input("email", sql.NVarChar, email)
-      .input("passwordHash", sql.NVarChar, passwordHash)
+      .input("passwordHash", sql.NVarChar, hashedPassword)
       .input("fullName", sql.NVarChar, fullName || null)
       .input("phone", sql.NVarChar, phone || null)
       .input("address", sql.NVarChar, address || null)
@@ -218,12 +285,11 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json({ message: "Đăng ký thành công!" });
   } catch (err) {
-    console.error(err);
+    console.error("Lỗi khi đăng ký:", err);
     res.status(500).json({ error: "Lỗi khi đăng ký người dùng." });
   }
 });
 
-// API đăng nhập
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -238,6 +304,8 @@ router.post("/login", async (req, res) => {
 
   try {
     const pool = await connectDB();
+    console.log("Kết nối cơ sở dữ liệu thành công");
+
     const result = await pool
       .request()
       .input("username", sql.NVarChar, username)
@@ -249,11 +317,34 @@ router.post("/login", async (req, res) => {
     }
 
     const user = result.recordset[0];
-    console.log(user.fullName);
+    console.log("User found:", user.FullName);
 
-    // Kiểm tra mật khẩu
-    const isMatch = await bcrypt.compare(password, user.PasswordHash);
-    if (!isMatch) {
+    let passwordMatch = false;
+    const storedPassword = user["PasswordHash"];
+
+    if (!storedPassword) {
+      console.log("Mật khẩu không tồn tại trong cơ sở dữ liệu:", username);
+      return res.status(400).json({ error: "Mật khẩu không tồn tại." });
+    }
+
+    if (storedPassword === password) {
+      passwordMatch = true;
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      console.log(`Mật khẩu của ${username} đã được băm: ${hashedPassword}`);
+      await pool
+        .request()
+        .input("username", sql.NVarChar, username)
+        .input("passwordHash", sql.NVarChar, hashedPassword)
+        .query(
+          "UPDATE Users SET PasswordHash = @passwordHash WHERE Username = @username"
+        );
+      console.log(`Mật khẩu của ${username} đã được cập nhật thành công.`);
+    } else {
+      passwordMatch = await bcrypt.compare(password, storedPassword);
+    }
+
+    if (!passwordMatch) {
       console.log("Password incorrect for user:", username);
       return res.status(400).json({ error: "Mật khẩu không đúng." });
     }
@@ -261,7 +352,7 @@ router.post("/login", async (req, res) => {
     res.status(200).json({
       message: "Đăng nhập thành công!",
       user: {
-        username: user.Username,
+        username: user["Username"],
         fullName: user.FullName,
         email: user.Email,
         phone: user.Phone,
@@ -269,15 +360,16 @@ router.post("/login", async (req, res) => {
         avatarUrl: user.AvatarUrl
           ? `${process.env.NGROK_BASE_URL}${user.AvatarUrl}`
           : null,
+        id: user.Id,
       },
     });
   } catch (err) {
-    console.error("Error in login:", err);
-    res.status(500).json({ error: "Lỗi khi đăng nhập." });
+    console.error("Error in login:", err.message);
+    console.error("Stack trace:", err.stack);
+    res.status(500).json({ error: "Lỗi khi đăng nhập.", details: err.message });
   }
 });
 
-// API lấy thông tin khách hàng dựa trên username
 router.get("/user", async (req, res) => {
   const { username } = req.query;
 
@@ -300,7 +392,8 @@ router.get("/user", async (req, res) => {
           Email AS email,
           Phone AS phone,
           Address AS address,
-          AvatarUrl AS avatarUrl
+          AvatarUrl AS avatarUrl,
+          Id AS id
         FROM Users 
         WHERE Username = @username
       `);
@@ -323,7 +416,6 @@ router.get("/user", async (req, res) => {
   }
 });
 
-// API cập nhật thông tin người dùng
 router.put("/update-user", upload.single("avatar"), async (req, res) => {
   const { username, fullName, email, phone, address } = req.body;
   const avatarFile = req.file;
@@ -367,10 +459,15 @@ router.put("/update-user", upload.single("avatar"), async (req, res) => {
   }
 });
 
-// API đặt hàng
 router.post("/place-order", async (req, res) => {
-  const { username, totalAmount, paymentMethod, items, deliveryAddress } =
-    req.body;
+  const {
+    username,
+    totalAmount,
+    paymentMethod,
+    items,
+    deliveryAddress,
+    voucherId,
+  } = req.body;
 
   if (
     !username ||
@@ -432,10 +529,12 @@ router.post("/place-order", async (req, res) => {
       .input("userId", sql.Int, userId)
       .input("totalAmount", sql.Decimal(18, 3), totalAmount)
       .input("paymentMethodId", sql.Int, paymentMethodId)
-      .input("statusId", sql.Int, statusId).query(`
-        INSERT INTO Orders (UserId, OrderDate, TotalAmount, PaymentMethodId, StatusId)
+      .input("statusId", sql.Int, statusId)
+      .input("deliveryAddress", sql.NVarChar, deliveryAddress)
+      .input("voucherId", sql.Int, voucherId || null).query(`
+        INSERT INTO Orders (UserId, OrderDate, TotalAmount, PaymentMethodId, StatusId, DeliveryAddress, VoucherId)
         OUTPUT INSERTED.OrderId
-        VALUES (@userId, GETDATE(), @totalAmount, @paymentMethodId, @statusId)
+        VALUES (@userId, GETDATE(), @totalAmount, @paymentMethodId, @statusId, @deliveryAddress, @voucherId)
       `);
 
     const orderId = orderResult.recordset[0].OrderId;
@@ -457,11 +556,173 @@ router.post("/place-order", async (req, res) => {
     res.status(201).json({ message: "Đặt hàng thành công!", orderId });
   } catch (err) {
     console.error("Error placing order:", err);
-    res.status(500).json({ error: "Lỗi khi đặt hàng." });
+    res.status(500).json({ error: "Lỗi khi đặt hàng.", details: err.message });
   }
 });
 
-// API lấy lịch sử đơn
+router.post("/apply-voucher", async (req, res) => {
+  const { code, totalAmount } = req.body;
+  console.log("Received voucher request:", { code, totalAmount });
+
+  if (!code || totalAmount === undefined) {
+    console.log("Missing code or totalAmount");
+    return res
+      .status(400)
+      .json({ error: "Vui lòng cung cấp mã voucher và tổng tiền đơn hàng." });
+  }
+
+  try {
+    const pool = await connectDB();
+    const result = await pool.request().input("code", sql.NVarChar, code)
+      .query(`
+        SELECT VoucherId, Code, DiscountAmount, DiscountPercentage, MinOrderAmount, ExpiryDate, IsActive, MaxUsage, UsedCount
+        FROM Vouchers
+        WHERE Code = @code AND IsActive = 1 AND ExpiryDate > GETDATE()
+      `);
+
+    if (result.recordset.length === 0) {
+      console.log("No valid voucher found for code:", code);
+      return res
+        .status(404)
+        .json({ error: "Mã voucher không hợp lệ hoặc đã hết hạn." });
+    }
+
+    const voucher = result.recordset[0];
+    console.log("Found voucher:", voucher);
+
+    if (voucher.MaxUsage && voucher.UsedCount >= voucher.MaxUsage) {
+      console.log("Voucher usage limit reached:", code);
+      return res
+        .status(400)
+        .json({ error: "Mã voucher đã được sử dụng hết lượt." });
+    }
+
+    if (voucher.MinOrderAmount && totalAmount < voucher.MinOrderAmount) {
+      console.log("Order amount too low:", {
+        totalAmount,
+        minRequired: voucher.MinOrderAmount,
+      });
+      return res.status(400).json({
+        error: `Đơn hàng phải từ ${voucher.MinOrderAmount.toLocaleString(
+          "vi-VN"
+        )} đ để áp dụng mã này.`,
+      });
+    }
+
+    let discount = 0;
+    if (voucher.DiscountAmount !== null && voucher.DiscountAmount > 0) {
+      discount = voucher.DiscountAmount;
+    } else if (voucher.DiscountPercentage !== null) {
+      discount = (totalAmount * voucher.DiscountPercentage) / 100;
+    } else {
+      console.log("Invalid voucher: No discount amount or percentage provided");
+      return res
+        .status(400)
+        .json({ error: "Voucher không có giá trị giảm giá hợp lệ." });
+    }
+
+    await pool
+      .request()
+      .input("code", sql.NVarChar, code)
+      .query(
+        "UPDATE Vouchers SET UsedCount = UsedCount + 1 WHERE Code = @code"
+      );
+
+    res.status(200).json({
+      message: "Áp dụng voucher thành công!",
+      discount: Math.round(discount),
+      voucherId: voucher.VoucherId,
+    });
+  } catch (err) {
+    console.error("Detailed error applying voucher:", err.message, err.stack);
+    res.status(500).json({ error: "Lỗi server khi áp dụng voucher." });
+  }
+});
+
+router.get("/delivery-addresses", async (req, res) => {
+  const { userId } = req.query;
+  console.log("Received request for delivery-addresses with userId:", userId);
+  if (!userId) {
+    console.log("Missing userId");
+    return res.status(400).json({ error: "Vui lòng cung cấp userId." });
+  }
+  try {
+    const pool = await connectDB();
+    const result = await pool.request().input("userId", sql.Int, userId).query(`
+      SELECT AddressId, Address, IsDefault
+      FROM DeliveryAddresses
+      WHERE UserId = @userId
+      ORDER BY IsDefault DESC, CreatedDate DESC
+    `);
+    console.log("Delivery addresses fetched:", result.recordset);
+    res.status(200).json(result.recordset);
+  } catch (err) {
+    console.error("Error fetching delivery addresses:", err);
+    res.status(500).json({ error: "Lỗi khi lấy danh sách địa chỉ giao hàng." });
+  }
+});
+
+router.post("/delivery-addresses", async (req, res) => {
+  const { userId, address, isDefault } = req.body;
+  console.log("Received request to add delivery address:", {
+    userId,
+    address,
+    isDefault,
+  });
+  if (!userId || !address) {
+    console.log("Missing userId or address");
+    return res.status(400).json({ error: "userId và address là bắt buộc." });
+  }
+  try {
+    const pool = await connectDB();
+    const result = await pool
+      .request()
+      .input("UserId", sql.Int, userId)
+      .input("Address", sql.NVarChar, address)
+      .input("IsDefault", sql.Bit, isDefault ? 1 : 0).query(`
+        INSERT INTO DeliveryAddresses (UserId, Address, IsDefault, CreatedDate)
+        OUTPUT INSERTED.AddressId, INSERTED.UserId, INSERTED.Address, INSERTED.IsDefault
+        VALUES (@UserId, @Address, @IsDefault, GETDATE())
+      `);
+    console.log("Added delivery address:", result.recordset[0]);
+    res.status(200).json(result.recordset[0]);
+  } catch (error) {
+    console.error("Error adding delivery address:", error);
+    res.status(500).json({ error: "Lỗi server.", details: error.message });
+  }
+});
+
+// Giữ nguyên route cũ nhưng đổi tên để tránh xung đột
+router.post("/add-delivery-address", async (req, res) => {
+  const { userId, address, isDefault } = req.body;
+  console.log("Received request to add delivery address:", {
+    userId,
+    address,
+    isDefault,
+  });
+  if (!userId || !address) {
+    console.log("Missing userId or address");
+    return res.status(400).json({ error: "userId và address là bắt buộc." });
+  }
+  try {
+    const pool = await connectDB();
+    const result = await pool
+      .request()
+      .input("UserId", sql.Int, userId)
+      .input("Address", sql.NVarChar, address)
+      .input("IsDefault", sql.Bit, isDefault ? 1 : 0).query(`
+        INSERT INTO DeliveryAddresses (UserId, Address, IsDefault, CreatedDate)
+        OUTPUT INSERTED.AddressId, INSERTED.UserId, INSERTED.Address, INSERTED.IsDefault
+        VALUES (@UserId, @Address, @IsDefault, GETDATE())
+      `);
+    console.log("Added delivery address:", result.recordset[0]);
+    res.status(200).json(result.recordset[0]);
+  } catch (error) {
+    console.error("Error adding delivery address:", error);
+    res.status(500).json({ error: "Lỗi server." });
+  }
+});
+//api lấy lịch sử đơn
 router.get("/order-history", async (req, res) => {
   const { username } = req.query;
 
@@ -542,8 +803,51 @@ router.get("/order-history", async (req, res) => {
     });
   }
 });
+//api hủy đơn
+router.post("/cancel-order", async (req, res) => {
+  const { orderId } = req.body;
 
-// API lấy danh sách danh mục
+  if (!orderId) {
+    return res.status(400).json({ error: "Vui lòng cung cấp OrderId." });
+  }
+
+  try {
+    const pool = await connectDB();
+
+    // Kiểm tra trạng thái đơn hàng
+    const orderResult = await pool
+      .request()
+      .input("orderId", sql.Int, orderId)
+      .query("SELECT StatusId FROM Orders WHERE OrderId = @orderId");
+
+    if (orderResult.recordset.length === 0) {
+      return res.status(404).json({ error: "Không tìm thấy đơn hàng." });
+    }
+
+    const statusId = orderResult.recordset[0].StatusId;
+    if (statusId !== 1) {
+      return res
+        .status(400)
+        .json({ error: "Đơn hàng không thể hủy ở trạng thái này." });
+    }
+
+    // Cập nhật trạng thái đơn hàng thành "Đã hủy" (giả sử bạn thêm trạng thái này)
+    await pool
+      .request()
+      .input("orderId", sql.Int, orderId)
+      .query("UPDATE Orders SET StatusId = 5 WHERE OrderId = @orderId");
+
+    res
+      .status(200)
+      .json({ success: true, message: "Hủy đơn hàng thành công." });
+  } catch (err) {
+    console.error("Error canceling order:", err);
+    res
+      .status(500)
+      .json({ error: "Lỗi khi hủy đơn hàng.", details: err.message });
+  }
+});
+
 router.get("/categories", async (req, res) => {
   console.log("Fetching categories...");
 
@@ -569,7 +873,6 @@ router.get("/categories", async (req, res) => {
   }
 });
 
-// API lấy danh sách sản phẩm
 router.get("/products", async (req, res) => {
   console.log("Fetching products...");
 
@@ -605,7 +908,6 @@ router.get("/products", async (req, res) => {
   }
 });
 
-// API lấy chi tiết sản phẩm
 router.get("/products/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -648,7 +950,6 @@ router.get("/products/:id", async (req, res) => {
   }
 });
 
-// API lấy giỏ hàng của người dùng
 router.get("/cart", async (req, res) => {
   const { username } = req.query;
 
@@ -695,7 +996,6 @@ router.get("/cart", async (req, res) => {
   }
 });
 
-// API thêm sản phẩm vào giỏ hàng
 router.post("/cart", async (req, res) => {
   const { username, foodId, quantity, price } = req.body;
 
@@ -769,7 +1069,6 @@ router.post("/cart", async (req, res) => {
   }
 });
 
-// API cập nhật số lượng sản phẩm trong giỏ hàng
 router.put("/cart/:gioHangId", async (req, res) => {
   const { gioHangId } = req.params;
   const { quantity, price } = req.body;
@@ -808,7 +1107,6 @@ router.put("/cart/:gioHangId", async (req, res) => {
   }
 });
 
-// API xóa sản phẩm khỏi giỏ hàng
 router.delete("/cart/:gioHangId", async (req, res) => {
   const { gioHangId } = req.params;
 
@@ -834,7 +1132,6 @@ router.delete("/cart/:gioHangId", async (req, res) => {
   }
 });
 
-// API lấy chi tiết cửa hàng
 router.get("/stores/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -854,7 +1151,9 @@ router.get("/stores/:id", async (req, res) => {
         opening_hours AS openingHours,
         CONCAT('${process.env.NGROK_BASE_URL}', image_url) AS image,
         phone,
-        created_at AS createdAt
+        created_at AS createdAt,
+        latitude,
+        longitude
       FROM CuaHang
       WHERE CuaHangId = @id
     `);
@@ -872,7 +1171,6 @@ router.get("/stores/:id", async (req, res) => {
   }
 });
 
-// API lấy danh sách cửa hàng
 router.get("/stores", async (req, res) => {
   console.log("Fetching stores...");
 
@@ -884,7 +1182,9 @@ router.get("/stores", async (req, res) => {
         CuaHangName AS name,
         address,
         CONCAT('${process.env.NGROK_BASE_URL}', image_url) AS image,
-        created_at AS createdAt
+        created_at AS createdAt,
+        latitude,
+        longitude
       FROM CuaHang
     `);
 
@@ -897,7 +1197,9 @@ router.get("/stores", async (req, res) => {
     res.status(200).json(result.recordset);
   } catch (err) {
     console.error("Error fetching stores:", err);
-    res.status(500).json({ error: "Lỗi khi lấy danh sách cửa hàng." });
+    res
+      .status(500)
+      .json({ error: "Lỗi khi lấy danh sách cửa hàng.", details: err.message });
   }
 });
 

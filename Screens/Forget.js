@@ -10,18 +10,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NGROK_BASE_URL } from "@env";
 
-const ForgetPassword = () => {
+const Forget = () => {
   const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [otpMessage, setOtpMessage] = useState(""); // Thêm state để hiển thị OTP
   const navigation = useNavigation();
 
-  const handleResetPassword = async () => {
+  const handleSendOtp = async () => {
     setErrorMessage("");
-    setOtpMessage("");
 
-    if (email.trim() === "") {
-      setErrorMessage("Vui lòng nhập địa chỉ email.");
+    if (!email.trim()) {
+      setErrorMessage("Vui lòng nhập email.");
       return;
     }
 
@@ -37,17 +35,10 @@ const ForgetPassword = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Lấy OTP từ phản hồi
-        const { otp } = data;
-        setOtpMessage(
-          `Mã OTP của bạn là: ${otp}. Vui lòng sử dụng mã này để xác minh.`
-        ); // Hiển thị OTP
-        // Truyền email và OTP sang màn hình Forget1
-        navigation.navigate("Forget1", { email, otp });
+        alert("Mã OTP đã được gửi đến email của bạn.");
+        navigation.navigate("Forget1", { email });
       } else {
-        setErrorMessage(
-          data.error || "Không thể gửi mã OTP. Vui lòng thử lại."
-        );
+        setErrorMessage(data.error || "Không thể gửi mã OTP.");
       }
     } catch (error) {
       setErrorMessage(`Lỗi kết nối: ${error.message}`);
@@ -58,19 +49,21 @@ const ForgetPassword = () => {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate("Login")}
+        onPress={() => navigation.goBack()}
       >
         <Ionicons name="arrow-back" size={40} color="#333" />
       </TouchableOpacity>
 
       <Text style={styles.title}>Quên Mật Khẩu</Text>
-      <Text style={styles.subtitle}>Nhập email của bạn để nhận mã OTP.</Text>
+      <Text style={styles.subtitle}>
+        Nhập email của bạn để nhận mã OTP đặt lại mật khẩu.
+      </Text>
 
       <View style={styles.inputContainer}>
         <Ionicons name="mail" size={20} color="#777" style={styles.icon} />
         <TextInput
           style={styles.input}
-          placeholder="Nhập email của bạn"
+          placeholder="Email"
           placeholderTextColor="#777"
           keyboardType="email-address"
           value={email}
@@ -82,13 +75,8 @@ const ForgetPassword = () => {
         <Text style={styles.errorText}>{errorMessage}</Text>
       ) : null}
 
-      {otpMessage ? <Text style={styles.successText}>{otpMessage}</Text> : null}
-
-      <TouchableOpacity
-        style={styles.resetButton}
-        onPress={handleResetPassword}
-      >
-        <Text style={styles.resetText}>Gửi Mã OTP</Text>
+      <TouchableOpacity style={styles.sendButton} onPress={handleSendOtp}>
+        <Text style={styles.sendText}>Gửi Mã OTP</Text>
       </TouchableOpacity>
     </View>
   );
@@ -134,14 +122,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-  resetButton: {
+  sendButton: {
     backgroundColor: "#E57905",
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
   },
-  resetText: {
+  sendText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
@@ -152,12 +140,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-  successText: {
-    color: "green",
-    fontSize: 14,
-    marginBottom: 10,
-    textAlign: "center",
-  },
 });
 
-export default ForgetPassword;
+export default Forget;

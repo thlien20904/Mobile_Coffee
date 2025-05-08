@@ -14,20 +14,48 @@ const Forget2 = ({ route }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errors, setErrors] = useState({});
   const navigation = useNavigation();
   const { email } = route.params || {};
 
-  const handleUpdatePassword = async () => {
-    setErrorMessage("");
+  // Hàm kiểm tra giá trị nhập liệu và cập nhật lỗi
+  const validateField = (field, value) => {
+    let newErrors = { ...errors };
 
-    if (password.trim() === "" || confirmPassword.trim() === "") {
-      setErrorMessage("Vui lòng nhập mật khẩu và xác nhận mật khẩu.");
-      return;
+    switch (field) {
+      case "password":
+        if (!value) {
+          newErrors.password = "Mật khẩu không được để trống.";
+        } else if (value.length < 6) {
+          newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
+        } else {
+          delete newErrors.password;
+        }
+        break;
+      case "confirmPassword":
+        if (!value) {
+          newErrors.confirmPassword = "Xác nhận mật khẩu không được để trống.";
+        } else if (value !== password) {
+          newErrors.confirmPassword =
+            "Mật khẩu và xác nhận mật khẩu không khớp.";
+        } else {
+          delete newErrors.confirmPassword;
+        }
+        break;
+      default:
+        break;
     }
 
-    if (password !== confirmPassword) {
-      setErrorMessage("Mật khẩu và xác nhận mật khẩu không khớp.");
+    setErrors(newErrors);
+  };
+
+  // Xử lý cập nhật mật khẩu
+  const handleUpdatePassword = async () => {
+    // Kiểm tra tất cả các trường trước khi gửi yêu cầu
+    validateField("password", password);
+    validateField("confirmPassword", confirmPassword);
+
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
@@ -49,10 +77,16 @@ const Forget2 = ({ route }) => {
           routes: [{ name: "Login" }],
         });
       } else {
-        setErrorMessage(data.error || "Không thể cập nhật mật khẩu.");
+        setErrors((prev) => ({
+          ...prev,
+          server: data.error || "Không thể cập nhật mật khẩu.",
+        }));
       }
     } catch (error) {
-      setErrorMessage(`Lỗi kết nối: ${error.message}`);
+      setErrors((prev) => ({
+        ...prev,
+        server: `Lỗi kết nối: ${error.message}`,
+      }));
     }
   };
 
@@ -83,7 +117,10 @@ const Forget2 = ({ route }) => {
           placeholderTextColor="#777"
           secureTextEntry={!passwordVisible}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            validateField("password", text);
+          }}
         />
         <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
           <Entypo
@@ -93,6 +130,9 @@ const Forget2 = ({ route }) => {
           />
         </TouchableOpacity>
       </View>
+      {errors.password && (
+        <Text style={styles.errorText}>{errors.password}</Text>
+      )}
 
       <View style={styles.inputContainer}>
         <Ionicons
@@ -107,7 +147,10 @@ const Forget2 = ({ route }) => {
           placeholderTextColor="#777"
           secureTextEntry={!passwordVisible}
           value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            validateField("confirmPassword", text);
+          }}
         />
         <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
           <Entypo
@@ -117,10 +160,11 @@ const Forget2 = ({ route }) => {
           />
         </TouchableOpacity>
       </View>
+      {errors.confirmPassword && (
+        <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+      )}
 
-      {errorMessage ? (
-        <Text style={styles.errorText}>{errorMessage}</Text>
-      ) : null}
+      {errors.server && <Text style={styles.errorText}>{errors.server}</Text>}
 
       <TouchableOpacity
         style={styles.updateButton}

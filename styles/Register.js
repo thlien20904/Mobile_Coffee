@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   headerSection: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 50,
+    marginTop: 20,
     marginBottom: 30,
   },
   backButton: {

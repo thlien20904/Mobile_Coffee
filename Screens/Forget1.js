@@ -14,7 +14,7 @@ const Forget1 = ({ route }) => {
   const [otp, setOtp] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigation = useNavigation();
-  const { email, otp: receivedOtp } = route.params || {}; // Lấy OTP từ params
+  const { email } = route.params || {}; // Chỉ lấy email từ params
 
   const handleConfirmOtp = async () => {
     setErrorMessage("");
@@ -56,11 +56,9 @@ const Forget1 = ({ route }) => {
       </TouchableOpacity>
 
       <Text style={styles.title}>Xác Nhận OTP</Text>
-      <Text style={styles.subtitle}>Nhập mã OTP cho email {email}.</Text>
-
-      {receivedOtp ? (
-        <Text style={styles.otpText}>Mã OTP của bạn: {receivedOtp}</Text>
-      ) : null}
+      <Text style={styles.subtitle}>
+        Nhập mã OTP đã được gửi đến email {email}.
+      </Text>
 
       <View style={styles.inputContainer}>
         <Ionicons name="key" size={20} color="#777" style={styles.icon} />
@@ -136,12 +134,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
-  },
-  otpText: {
-    color: "green",
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
   },
   errorText: {
     color: "red",

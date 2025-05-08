@@ -1,17 +1,21 @@
 import { StyleSheet } from "react-native";
+import { Platform } from "react-native";
 
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#FFF",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 15,
+    paddingTop: Platform.OS === "ios" ? 50 : 30,
+    paddingHorizontal: 15,
+    paddingBottom: 15,
     backgroundColor: "#FFF",
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
+    marginTop: -50,
   },
   backButton: {
     padding: 5,
@@ -24,7 +28,6 @@ export default StyleSheet.create({
   section: {
     padding: 15,
     backgroundColor: "#FFF",
-    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -33,17 +36,107 @@ export default StyleSheet.create({
     color: "#333",
   },
   inputContainer: {
-    marginBottom: 10, // Thêm để đảm bảo khoảng cách
+    marginBottom: 20,
   },
   input: {
-    height: 48, // Thêm height rõ ràng
+    height: 48,
     borderWidth: 1,
     borderColor: "#DDD",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: "#FFF",
+  },
+  addressSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 48,
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#FFF",
+    marginBottom: 20,
+  },
+  addressText: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1,
+    marginRight: 10,
+  },
+  placeholderText: {
+    color: "#999",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    maxHeight: "50%",
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  addressItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  addressItemText: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1,
+  },
+  defaultBadge: {
+    fontSize: 12,
+    color: "#FFF",
+    backgroundColor: "#F28C38",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  voucherContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  voucherInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  applyVoucherButton: {
+    backgroundColor: "#F28C38",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    justifyContent: "center",
+    height: 48, // Đảm bảo cùng chiều cao với ô nhập
+  },
+  applyVoucherText: {
+    fontSize: 16,
+    color: "#FFF",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   paymentOption: {
     flexDirection: "row",
@@ -56,8 +149,9 @@ export default StyleSheet.create({
     color: "#333",
   },
   orderList: {
-    flexGrow: 1, // Đảm bảo ScrollView mở rộng
-    paddingBottom: 20,
+    flexGrow: 1,
+    backgroundColor: "#FFF",
+    paddingBottom: Platform.OS === "ios" ? 0 : 20,
   },
   orderItem: {
     flexDirection: "row",
@@ -96,7 +190,7 @@ export default StyleSheet.create({
     fontWeight: "bold",
     flex: 1,
     textAlign: "right",
-    color: "#E57905",
+    color: "#F28C38",
   },
   summary: {
     marginTop: 10,
@@ -126,31 +220,32 @@ export default StyleSheet.create({
   summaryTotal: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#E57905",
+    color: "#F28C38",
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 15,
     backgroundColor: "#FFF",
+    paddingBottom: Platform.OS === "ios" ? 30 : 15,
   },
   backToCartButton: {
     flex: 1,
     padding: 15,
     borderWidth: 1,
-    borderColor: "#E57905",
+    borderColor: "#F28C38",
     borderRadius: 8,
     alignItems: "center",
     marginRight: 10,
   },
   backToCartText: {
     fontSize: 16,
-    color: "#E57905",
+    color: "#F28C38",
     fontWeight: "bold",
   },
   placeOrderButton: {
     flex: 1,
-    backgroundColor: "#E57905",
+    backgroundColor: "#F28C38",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
@@ -171,5 +266,21 @@ export default StyleSheet.create({
     fontSize: 16,
     color: "#FFF",
     fontWeight: "bold",
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
+    opacity: 0.6,
+  },
+  noAddressText: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 10,
   },
 });

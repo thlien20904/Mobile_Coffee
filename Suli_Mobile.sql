@@ -21,7 +21,7 @@ CREATE TABLE Users (
     CreatedDate DATETIME DEFAULT GETDATE()
 );
 GO
- --select *from users
+ select *from users
 -- Table: TableFood
 CREATE TABLE TableFood(
     TableId INT IDENTITY PRIMARY KEY,
@@ -30,23 +30,7 @@ CREATE TABLE TableFood(
 );
 GO
 
--- Table: AccRole
-CREATE TABLE AccRole(
-    RoleId INT IDENTITY PRIMARY KEY,
-    RoleName NVARCHAR(100) NOT NULL
-);
-GO
 
-
--- Table: Account
-CREATE TABLE Account (
-    AccountId INT IDENTITY PRIMARY KEY,
-    DisplayName NVARCHAR(100) NOT NULL,
-    UserName NVARCHAR(50) NOT NULL,
-    PassWord NVARCHAR(50) NOT NULL,
-    RoleName NVARCHAR(50) not null
-);
-GO
 
 -- Table: Category
 CREATE TABLE Category (
@@ -139,6 +123,29 @@ CREATE TABLE OrderStatus (
     StatusName NVARCHAR(50) NOT NULL UNIQUE
 );
 
+CREATE TABLE Vouchers (
+    VoucherId INT IDENTITY(1,1) PRIMARY KEY,
+    Code NVARCHAR(50) UNIQUE NOT NULL, -- Mã voucher (VD: FREESHIP, GIAM30K)
+    DiscountAmount DECIMAL(18, 3) NULL, -- Số tiền giảm (VD: 10000, 20000), có thể NULL nếu dùng DiscountPercentage
+    DiscountPercentage DECIMAL(5, 2) NULL, -- Phần trăm giảm (VD: 10.00, 30.00), nếu có
+    MinOrderAmount DECIMAL(18, 3) NULL, -- Giá trị đơn hàng tối thiểu để áp dụng
+    ExpiryDate DATETIME NOT NULL, -- Ngày hết hạn
+    IsActive BIT NOT NULL DEFAULT 1, -- Trạng thái: 1 = còn sử dụng được, 0 = không sử dụng
+    CreatedDate DATETIME DEFAULT GETDATE(),
+    MaxUsage INT NULL, -- Số lần sử dụng tối đa
+    UsedCount INT DEFAULT 0 -- Số lần đã sử dụng
+);
+
+CREATE TABLE DeliveryAddresses (
+    AddressId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Address NVARCHAR(255) NOT NULL,
+    IsDefault BIT NOT NULL DEFAULT 0, -- Địa chỉ mặc định
+    CreatedDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (UserId) REFERENCES Users(Id)
+);
+GO
+
 -- Bảng Orders
 CREATE TABLE Orders (
     OrderId INT PRIMARY KEY IDENTITY(1,1),
@@ -147,9 +154,12 @@ CREATE TABLE Orders (
     TotalAmount DECIMAL(18, 3) NOT NULL,
     PaymentMethodId INT NOT NULL,
     StatusId INT NOT NULL,
+    DeliveryAddress NVARCHAR(255) NULL,
+    VoucherId INT NULL,
     FOREIGN KEY (UserId) REFERENCES Users(Id),
     FOREIGN KEY (PaymentMethodId) REFERENCES PhuongThucThanhToan(Id),
-    FOREIGN KEY (StatusId) REFERENCES OrderStatus(StatusId)
+    FOREIGN KEY (StatusId) REFERENCES OrderStatus(StatusId),
+    FOREIGN KEY (VoucherId) REFERENCES Vouchers(VoucherId)
 );
 
 -- Bảng OrderDetails
@@ -167,8 +177,6 @@ CREATE TABLE OrderDetails (
     FOREIGN KEY (ToppingId) REFERENCES Topping(ToppingID)
 );
 
-select *from Orders
-select *from OrderDetails
 -- Table: Invoice
 CREATE TABLE Invoice (
     InvoiceId INT PRIMARY KEY IDENTITY,
@@ -193,26 +201,6 @@ CREATE TABLE InvoiceDetail(
 );
 GO
 
-
--- Table: Staff
-CREATE TABLE Staff (
-    StaffId INT PRIMARY KEY IDENTITY,
-    FullName NVARCHAR(100) NOT NULL,
-    Phone NVARCHAR(15),
-    DateOfBirth DATE NULL,
-    Email NVARCHAR(50) NULL,
-    Gender NVARCHAR(50) null,
-    AccountId INT,
-    RoleId INT,
-    FOREIGN KEY (AccountId) REFERENCES Account(AccountId),
-    FOREIGN KEY (RoleId) REFERENCES AccRole(RoleId)
-);
-GO
-UPDATE Staff
-SET Gender = CASE 
-    WHEN Gender = 'True' THEN 'Nam'
-    WHEN Gender = 'False' THEN 'Nữ'
-END
 
 
 
@@ -244,16 +232,25 @@ CREATE TABLE CuaHang (
     opening_hours VARCHAR(50),
     image_url VARCHAR(255),
     phone VARCHAR(20),
-    created_at DATETIME2 DEFAULT GETDATE()
+    created_at DATETIME2 DEFAULT GETDATE(),
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8)
 );
-GO
+
+-- Cập nhật tọa độ
+UPDATE CuaHang
+SET latitude = 21.0165, longitude = 105.8163
+WHERE CuaHangId = 1;
+
+UPDATE CuaHang
+SET latitude = 10.7769, longitude = 106.7009
+WHERE CuaHangId = 2;
+
 
 INSERT INTO Users (Username, Email, PasswordHash, FullName, Phone, Address, Role, AvatarUrl)
 VALUES 
-('admin', 'thuylien2k4@gmail.com', '1', N'Thùy Liên', '0366413924', N'Hà Nội', 'Admin','/images/Avatar/a.png'),
-('user', 'lien@gmail.com', '1', N'Liên Nguyễn', '0987654321', N'Hồ Chí Minh', 'User','/images/Avatar/a.png'),
-('user1', 'example2@gmail.com', '1', N'Nguyễn Văn A', '0901122334', N'Đà Nẵng', 'User', '/images/Avatar/b.png'),
-('user2', 'example3@gmail.com', '1', N'Lê Thị B', '0905678999', N'Cần Thơ', 'User', '/images/Avatar/a.png');
+('user', 'thuylien2k4@gmail.com', '1', N'Thúy Liên', '0366413924', N'Hà Nội', 'Admin','/images/Avatar/a.png');
+
 GO
 INSERT INTO TableFood (TableName, TrangThai)
 VALUES
@@ -270,15 +267,6 @@ VALUES
 ('Table 11', N'Bàn Trống'),
 ('Table 12', N'Bàn Trống');
 
-INSERT INTO AccRole (RoleName)
-VALUES
-(N'Quản lý'),
-(N'Pha chế'),
-(N'Phục vụ');
-
-INSERT INTO Account (DisplayName, UserName, PassWord, RoleName)
-VALUES
-('Admin ', 'admin', '1', 'Admin');
 
 
 
@@ -651,16 +639,7 @@ VALUES
     (4, 12, 2,30000);
 	
 
--- Bảng Staff
-INSERT INTO Staff (FullName, Phone, DateOfBirth, Email, Gender, AccountId, RoleId) 
-VALUES
-(N'Nguyen Hai Duong', '0985082004', '2004-08-05', 'billduongg@gmail.com', 'Nam', 1, 1),
-(N'Nguyen Minh Hoang', '0985082005', '2004-08-06', 'staff2@gmail.com', 'Nam', null, 2),
-(N'Nguyen Bao Han', '0985082029', '2004-08-16', 'staff1@gmail.com', 'Nam', null, 2),
-(N'Nguyen Thi Hoai Suong', '0985082006', '2004-08-07', 'staff3@gmail.com', 'Nam', null, 3),
-(N'Dieu Thuy Lien', '0985082007', '2004-08-08', 'staff4@gmail.com', 'Nam', null, 3),
-(N'Vu Hoang Anh', '0985082008', '2004-08-09', 'staff5@gmail.com', 'Nam', null, 3),
-(N'Vu Hoang Em', '0985082009', '2004-08-10', 'staff6@gmail.com', N'Nữ', null, 3);
+
 
 
 -- Bảng Warehouse
@@ -680,46 +659,63 @@ VALUES
     (N'Đặt hàng thành công'),
     (N'Đang chuẩn bị đơn hàng'),
     (N'Đang giao hàng'),
-    (N'Giao hàng thành công');
+    (N'Giao hàng thành công'),
+	(N'Đã hủy');
 
-INSERT INTO CuaHang (CuaHangName, address, opening_hours, image_url, phone) VALUES
-(N'SuLi Coffee HCM Nguyễn Trãi', N'120 Nguyễn Trãi, Quận 5, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a1.png', '0123456794'),
-(N'SuLi Coffee HCM Phan Xích Long', N'34 Phan Xích Long, Phú Nhuận, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a2.png', '0123456795'),
-(N'SuLi Coffee HCM Tô Hiến Thành', N'98 Tô Hiến Thành, Quận 10, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a3.png', '0123456796'),
-(N'SuLi Coffee HCM Nguyễn Đình Chiểu', N'210 Nguyễn Đình Chiểu, Quận 3, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a4.png', '0123456797'),
-(N'SuLi Coffee HCM Điện Biên Phủ', N'375 Điện Biên Phủ, Bình Thạnh, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a5.png', '0123456798'),
-(N'SuLi Coffee HCM Trường Sa', N'245 Trường Sa, Phú Nhuận, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a6.png', '0123456799'),
-(N'SuLi Coffee HCM Đinh Tiên Hoàng', N'142 Đinh Tiên Hoàng, Quận 1, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a7.png', '0123456700'),
-(N'SuLi Coffee HCM Lê Quang Định', N'400 Lê Quang Định, Bình Thạnh, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a8.png', '0123456701'),
-(N'SuLi Coffee HCM Cộng Hòa', N'198 Cộng Hòa, Tân Bình, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a9.png', '0123456702'),
-(N'SuLi Coffee HCM Quang Trung', N'99 Quang Trung, Gò Vấp, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a10.png', '0123456703'),
-(N'SuLi Coffee HN Nguyễn Chí Thanh', N'45 Nguyễn Chí Thanh, Đống Đa, Hà Nội', '7:00 - 21:30', '/images/cuahang/a1.png', '0123456704'),
-(N'SuLi Coffee HN Kim Mã', N'123 Kim Mã, Ba Đình, Hà Nội', '7:00 - 21:30', '/images/cuahang/a2.png', '0123456705'),
-(N'SuLi Coffee HN Trần Duy Hưng', N'321 Trần Duy Hưng, Cầu Giấy, Hà Nội', '7:00 - 21:30', '/images/cuahang/a3.png', '0123456706'),
-(N'SuLi Coffee HN Bạch Mai', N'75 Bạch Mai, Hai Bà Trưng, Hà Nội', '7:00 - 21:30', '/images/cuahang/a4.png', '0123456707'),
-(N'SuLi Coffee HN Hồ Tùng Mậu', N'65 Hồ Tùng Mậu, Nam Từ Liêm, Hà Nội', '7:00 - 21:30', '/images/cuahang/a5.png', '0123456708'),
-(N'SuLi Coffee HN Lê Văn Lương', N'120 Lê Văn Lương, Thanh Xuân, Hà Nội', '7:00 - 21:30', '/images/cuahang/a6.png', '0123456709'),
-(N'SuLi Coffee HN Giải Phóng', N'201 Giải Phóng, Hoàng Mai, Hà Nội', '7:00 - 21:30', '/images/cuahang/a7.png', '0123456710'),
-(N'SuLi Coffee HN Nguyễn Trãi', N'188 Nguyễn Trãi, Hà Đông, Hà Nội', '7:00 - 21:30', '/images/cuahang/a8.png', '0123456711'),
-(N'SuLi Coffee HN Cầu Giấy', N'55 Cầu Giấy, Cầu Giấy, Hà Nội', '7:00 - 21:30', '/images/cuahang/a9.png', '0123456712'),
-(N'SuLi Coffee HN Xuân Thủy', N'10 Xuân Thủy, Cầu Giấy, Hà Nội', '7:00 - 21:30', '/images/cuahang/a10.png', '0123456713'),
-(N'SuLi Coffee Đà Nẵng Lê Duẩn', N'88 Lê Duẩn, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a1.png', '0123456714'),
-(N'SuLi Coffee Đà Nẵng Nguyễn Văn Linh', N'101 Nguyễn Văn Linh, Thanh Khê, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a2.png', '0123456715'),
-(N'SuLi Coffee Đà Nẵng Trần Phú', N'55 Trần Phú, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a3.png', '0123456716'),
-(N'SuLi Coffee Đà Nẵng Phan Châu Trinh', N'73 Phan Châu Trinh, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a4.png', '0123456717'),
-(N'SuLi Coffee Đà Nẵng Hoàng Diệu', N'102 Hoàng Diệu, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a5.png', '0123456718'),
-(N'SuLi Coffee Đà Nẵng Nguyễn Tất Thành', N'99 Nguyễn Tất Thành, Thanh Khê, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a6.png', '0123456719'),
-(N'SuLi Coffee Cần Thơ Trần Hưng Đạo', N'54 Trần Hưng Đạo, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a7.png', '0123456720'),
-(N'SuLi Coffee Cần Thơ 30 Tháng 4', N'80 30 Tháng 4, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a8.png', '0123456721'),
-(N'SuLi Coffee Cần Thơ Mậu Thân', N'15 Mậu Thân, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a9.png', '0123456722'),
-(N'SuLi Coffee Cần Thơ Nguyễn Văn Cừ', N'99 Nguyễn Văn Cừ, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a10.png', '0123456723');
-
-
-
-
+INSERT INTO CuaHang (CuaHangName, address, opening_hours, image_url, phone, latitude, longitude)
+VALUES
+(N'SuLi Coffee HCM Nguyễn Trãi', N'120 Nguyễn Trãi, Quận 5, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a1.png', '0123456794', 10.762622, 106.660172),
+(N'SuLi Coffee HCM Phan Xích Long', N'34 Phan Xích Long, Phú Nhuận, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a2.png', '0123456795', 10.799120, 106.677456),
+(N'SuLi Coffee HCM Tô Hiến Thành', N'98 Tô Hiến Thành, Quận 10, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a3.png', '0123456796', 10.774000, 106.667000),
+(N'SuLi Coffee HCM Nguyễn Đình Chiểu', N'210 Nguyễn Đình Chiểu, Quận 3, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a4.png', '0123456797', 10.779000, 106.692000),
+(N'SuLi Coffee HCM Điện Biên Phủ', N'375 Điện Biên Phủ, Bình Thạnh, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a5.png', '0123456798', 10.800000, 106.700000),
+(N'SuLi Coffee HCM Trường Sa', N'245 Trường Sa, Phú Nhuận, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a6.png', '0123456799', 10.799000, 106.684000),
+(N'SuLi Coffee HCM Đinh Tiên Hoàng', N'142 Đinh Tiên Hoàng, Quận 1, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a7.png', '0123456700', 10.790000, 106.699000),
+(N'SuLi Coffee HCM Lê Quang Định', N'400 Lê Quang Định, Bình Thạnh, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a8.png', '0123456701', 10.812000, 106.700000),
+(N'SuLi Coffee HCM Cộng Hòa', N'198 Cộng Hòa, Tân Bình, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a9.png', '0123456702', 10.801941, 106.647484),
+(N'SuLi Coffee HCM Quang Trung', N'99 Quang Trung, Gò Vấp, Hồ Chí Minh', '7:00 - 21:30', '/images/cuahang/a10.png', '0123456703', 10.823000, 106.687000),
+(N'SuLi Coffee HN Nguyễn Chí Thanh', N'45 Nguyễn Chí Thanh, Đống Đa, Hà Nội', '7:00 - 21:30', '/images/cuahang/a1.png', '0123456704', 21.028000, 105.800000),
+(N'SuLi Coffee HN Kim Mã', N'123 Kim Mã, Ba Đình, Hà Nội', '7:00 - 21:30', '/images/cuahang/a2.png', '0123456705', 21.033000, 105.820000),
+(N'SuLi Coffee HN Trần Duy Hưng', N'321 Trần Duy Hưng, Cầu Giấy, Hà Nội', '7:00 - 21:30', '/images/cuahang/a3.png', '0123456706', 21.015000, 105.800000),
+(N'SuLi Coffee HN Bạch Mai', N'75 Bạch Mai, Hai Bà Trưng, Hà Nội', '7:00 - 21:30', '/images/cuahang/a4.png', '0123456707', 21.005000, 105.840000),
+(N'SuLi Coffee HN Hồ Tùng Mậu', N'65 Hồ Tùng Mậu, Nam Từ Liêm, Hà Nội', '7:00 - 21:30', '/images/cuahang/a5.png', '0123456708', 21.040000, 105.770000),
+(N'SuLi Coffee HN Lê Văn Lương', N'120 Lê Văn Lương, Thanh Xuân, Hà Nội', '7:00 - 21:30', '/images/cuahang/a6.png', '0123456709', 21.010000, 105.800000),
+(N'SuLi Coffee HN Giải Phóng', N'201 Giải Phóng, Hoàng Mai, Hà Nội', '7:00 - 21:30', '/images/cuahang/a7.png', '0123456710', 20.990000, 105.850000),
+(N'SuLi Coffee HN Nguyễn Trãi', N'188 Nguyễn Trãi, Hà Đông, Hà Nội', '7:00 - 21:30', '/images/cuahang/a8.png', '0123456711', 20.980000, 105.790000),
+(N'SuLi Coffee HN Cầu Giấy', N'55 Cầu Giấy, Cầu Giấy, Hà Nội', '7:00 - 21:30', '/images/cuahang/a9.png', '0123456712', 21.030000, 105.800000),
+(N'SuLi Coffee HN Xuân Thủy', N'10 Xuân Thủy, Cầu Giấy, Hà Nội', '7:00 - 21:30', '/images/cuahang/a10.png', '0123456713', 21.040000, 105.780000),
+(N'SuLi Coffee Đà Nẵng Lê Duẩn', N'88 Lê Duẩn, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a1.png', '0123456714', 16.075000, 108.220000),
+(N'SuLi Coffee Đà Nẵng Nguyễn Văn Linh', N'101 Nguyễn Văn Linh, Thanh Khê, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a2.png', '0123456715', 16.060000, 108.210000),
+(N'SuLi Coffee Đà Nẵng Trần Phú', N'55 Trần Phú, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a3.png', '0123456716', 16.068000, 108.220000),
+(N'SuLi Coffee Đà Nẵng Phan Châu Trinh', N'73 Phan Châu Trinh, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a4.png', '0123456717', 16.065000, 108.220000),
+(N'SuLi Coffee Đà Nẵng Hoàng Diệu', N'102 Hoàng Diệu, Hải Châu, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a5.png', '0123456718', 16.060000, 108.210000),
+(N'SuLi Coffee Đà Nẵng Nguyễn Tất Thành', N'99 Nguyễn Tất Thành, Thanh Khê, Đà Nẵng', '7:00 - 21:30', '/images/cuahang/a6.png', '0123456719', 16.070000, 108.190000),
+(N'SuLi Coffee Cần Thơ Trần Hưng Đạo', N'54 Trần Hưng Đạo, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a7.png', '0123456720', 10.035000, 105.780000),
+(N'SuLi Coffee Cần Thơ 30 Tháng 4', N'80 30 Tháng 4, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a8.png', '0123456721', 10.030000, 105.770000),
+(N'SuLi Coffee Cần Thơ Mậu Thân', N'15 Mậu Thân, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a9.png', '0123456722', 10.035000, 105.765000),
+(N'SuLi Coffee Cần Thơ Nguyễn Văn Cừ', N'99 Nguyễn Văn Cừ, Ninh Kiều, Cần Thơ', '7:00 - 21:30', '/images/cuahang/a10.png', '0123456723', 10.040000, 105.770000);
 
 
 
+INSERT INTO Vouchers (Code, DiscountAmount, DiscountPercentage, MinOrderAmount, ExpiryDate, IsActive, MaxUsage)
+VALUES 
+    ('FREESHIP', 20000, NULL, 50000, '2025-05-30 23:59:59', 1, 100),
+    ('GIAM30K', 30000, NULL, 99000, '2025-05-30 23:59:59', 1, 100),
+    ('GIAM20K', 20000, NULL, 60000, '2025-05-30 23:59:59', 1, 50),
+    ('GIAM10KM', NULL, 10.00, 500000, '2025-05-30 23:59:59', 1, 200),
+	('GIAM30KM', NULL, 10.00, 250000, '2025-05-30 23:59:59', 1, 200);
+
+
+-- Thêm dữ liệu mẫu
+INSERT INTO DeliveryAddresses (UserId, Address, IsDefault)
+VALUES 
+    (1, N'123 Đường Láng, Đống Đa, Hà Nội', 1),
+    (1, N'456 Nguyễn Trãi, Thanh Xuân, Hà Nội', 0),
+    (1, N'789 Lê Lợi, Quận 1, TP.HCM', 1);
+GO
+
+
+SELECT *FROM CuaHang;
 
 DECLARE @sql NVARCHAR(MAX) = '';
 SELECT @sql += 'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' +

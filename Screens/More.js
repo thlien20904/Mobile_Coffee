@@ -16,23 +16,14 @@ import styles from "../styles/More";
 
 const More = ({ route }) => {
   const navigation = useNavigation();
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    route.params?.isLoggedIn || false
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Cập nhật isLoggedIn khi route.params thay đổi
-  useEffect(() => {
-    if (route.params?.isLoggedIn !== undefined) {
-      setIsLoggedIn(route.params.isLoggedIn);
-    }
-  }, [route.params?.isLoggedIn]);
-
-  // Kiểm tra AsyncStorage như dự phòng
+  // Kiểm tra trạng thái đăng nhập từ AsyncStorage
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         const loggedIn = await AsyncStorage.getItem("isLoggedIn");
-        console.log("isLoggedIn in More:", loggedIn); // Debug
+        console.log("isLoggedIn in More:", loggedIn);
         setIsLoggedIn(loggedIn === "true");
       } catch (error) {
         console.error("Error checking login status:", error);
@@ -84,7 +75,7 @@ const More = ({ route }) => {
   );
 
   const handleNavigation = (screen, params = {}) => {
-    console.log(`Navigating to ${screen}, isLoggedIn: ${isLoggedIn}`); // Debug
+    console.log(`Navigating to ${screen}, isLoggedIn: ${isLoggedIn}`);
     if (isLoggedIn) {
       navigation.navigate(screen, params);
     } else {
@@ -109,20 +100,15 @@ const More = ({ route }) => {
         loggedIn,
         "userInfo:",
         userInfo
-      ); // Debug
+      );
 
       // Cập nhật state
       setIsLoggedIn(false);
 
-      // Gọi updateLoginStatus để đồng bộ App.js
-      if (route.params?.updateLoginStatus) {
-        await route.params.updateLoginStatus();
-      }
-
       // Reset stack về Main để làm mới MainTabs
       navigation.reset({
         index: 0,
-        routes: [{ name: "Main", params: { isLoggedIn: false } }],
+        routes: [{ name: "Main" }],
       });
 
       console.log("Đã đăng xuất và reset về Main");

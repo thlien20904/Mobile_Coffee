@@ -1,5 +1,7 @@
-module.exports = {
-    presets: ["babel-preset-expo"], // Sử dụng preset của Expo
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ["babel-preset-expo"],
     plugins: [
       [
         "module:react-native-dotenv",
@@ -9,8 +11,9 @@ module.exports = {
           blacklist: null,
           whitelist: null,
           safe: false,
-          allowUndefined: true,
+          allowUndefined: false,
         },
       ],
     ],
   };
+};

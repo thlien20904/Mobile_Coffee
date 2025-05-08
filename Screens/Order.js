@@ -5,10 +5,12 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Image,
-  ScrollView,
+  FlatList,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/OrderStyle";
 
@@ -20,10 +22,25 @@ export default function Order({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [displayedProducts, setDisplayedProducts] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 5;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const productsPerLoad = 5;
+
+  // Kiểm tra trạng thái đăng nhập
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = await AsyncStorage.getItem("isLoggedIn");
+        setIsLoggedIn(loggedIn === "true");
+      } catch (error) {
+        console.error("Error checking login status:", error);
+      }
+    };
+    checkLoginStatus();
+  }, []);
 
   // Gọi API để lấy danh sách danh mục
   useEffect(() => {
@@ -44,8 +61,6 @@ export default function Order({ navigation }) {
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          const text = await response.text();
-          console.log("Phản hồi từ server không phải JSON:", text);
           throw new Error("Phản hồi từ server không phải JSON");
         }
 
@@ -57,7 +72,6 @@ export default function Order({ navigation }) {
         }
 
         const data = await response.json();
-        console.log("Categories from API:", data);
         setCategories(data);
         if (data.length > 0) {
           setSelectedCategory(data[0].id);
@@ -92,8 +106,6 @@ export default function Order({ navigation }) {
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          const text = await response.text();
-          console.log("Phản hồi từ server không phải JSON:", text);
           throw new Error("Phản hồi từ server không phải JSON");
         }
 
@@ -105,9 +117,9 @@ export default function Order({ navigation }) {
         }
 
         const data = await response.json();
-        console.log("Products from API:", data);
         setProducts(data);
         setFilteredProducts(data);
+        setDisplayedProducts(data.slice(0, productsPerLoad));
         setErrorMessage("");
       } catch (error) {
         console.error("Error fetching products:", error.message);
@@ -136,29 +148,25 @@ export default function Order({ navigation }) {
     }
 
     setFilteredProducts(filtered);
-    setCurrentPage(1);
+    setDisplayedProducts(filtered.slice(0, productsPerLoad));
   }, [selectedCategory, products, searchQuery]);
 
-  // Tính toán sản phẩm hiển thị theo trang
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  // Load thêm sản phẩm khi kéo đến cuối
+  const loadMoreProducts = () => {
+    if (isLoading) return;
 
-  // Hàm chuyển trang
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+    const currentLength = displayedProducts.length;
+    if (currentLength >= filteredProducts.length) return;
 
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
+    setIsLoading(true);
+    setTimeout(() => {
+      const nextProducts = filteredProducts.slice(
+        0,
+        currentLength + productsPerLoad
+      );
+      setDisplayedProducts(nextProducts);
+      setIsLoading(false);
+    }, 500);
   };
 
   // Hàm điều hướng đến ProductDetail
@@ -166,13 +174,89 @@ export default function Order({ navigation }) {
     navigation.navigate("ProductDetail", { productId });
   };
 
+  // Hàm thêm vào giỏ hàng
+  const handleAddToCart = (product) => {
+    if (!product) return;
+
+    if (isLoggedIn) {
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        price:
+          product.discountPrice && product.discountPrice > 0
+            ? product.discountPrice
+            : product.price,
+        quantity: 1,
+        image: product.image,
+      };
+      navigation.navigate("Cart", { newItem: cartItem });
+    } else {
+      navigation.navigate("Login", {
+        redirectTo: "Cart",
+        redirectParams: {
+          newItem: {
+            id: product.id,
+            name: product.name,
+            price:
+              product.discountPrice && product.discountPrice > 0
+                ? product.discountPrice
+                : product.price,
+            quantity: 1,
+            image: product.image,
+          },
+        },
+      });
+    }
+  };
+
   // Tìm tên danh mục được chọn
   const selectedCategoryName = categories.find(
     (category) => category.id === selectedCategory
   )?.name;
 
-  return (
-    <SafeAreaView style={styles.container}>
+  // Component con cho mỗi sản phẩm
+  const ProductItem = React.memo(({ product }) => (
+    <TouchableOpacity
+      style={styles.productCard}
+      onPress={() => handleProductDetail(product.id)}
+    >
+      <View style={styles.productRow}>
+        <View style={styles.imageContainer}>
+          {product.isNew === 1 && (
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>NEW</Text>
+            </View>
+          )}
+          <Image
+            source={{ uri: product.image, cache: "reload" }}
+            style={styles.productImage}
+            resizeMode="cover"
+            defaultSource={defaultImage}
+          />
+        </View>
+        <View style={styles.productInfo}>
+          <Text style={styles.productName}>{product.name}</Text>
+          <Text style={styles.productPrice}>
+            {(product.discountPrice && product.discountPrice > 0
+              ? product.discountPrice
+              : product.price
+            ).toLocaleString("vi-VN")}{" "}
+            đ
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => handleAddToCart(product)}
+        >
+          <Ionicons name="add" size={20} color="#FFF" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  ));
+
+  // Header của FlatList
+  const renderHeader = () => (
+    <>
       {errorMessage ? (
         <View style={{ padding: 10, backgroundColor: "#ffcccc", margin: 10 }}>
           <Text style={{ color: "red", textAlign: "center" }}>
@@ -181,38 +265,33 @@ export default function Order({ navigation }) {
         </View>
       ) : null}
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header với "Danh mục" */}
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Danh mục</Text>
-        </View>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Danh mục</Text>
+      </View>
 
-        {/* Thanh tìm kiếm, danh mục, và icon tim trên cùng một hàng */}
-        <View style={styles.filterContainer}>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Tìm kiếm..."
-              placeholderTextColor="#777"
-              value={searchQuery}
-              onChangeText={(text) => setSearchQuery(text)}
-            />
-            <Ionicons
-              name="search"
-              size={20}
-              color="#E57905"
-              style={styles.searchIcon}
-            />
-          </View>
-          <ScrollView
+      <View style={styles.filterContainer}>
+        <View style={[styles.searchContainer, { flexShrink: 1 }]}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Tìm kiếm..."
+            placeholderTextColor="#777"
+            value={searchQuery}
+            onChangeText={(text) => setSearchQuery(text)}
+          />
+          <Ionicons
+            name="search"
+            size={20}
+            color="#E57905"
+            style={styles.searchIcon}
+          />
+        </View>
+        <View style={{ flex: 2 }}>
+          <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.categoryContainer}
-            contentContainerStyle={styles.categoryList}
-          >
-            {categories.map((item) => (
+            data={categories}
+            renderItem={({ item }) => (
               <TouchableOpacity
-                key={item.id.toString()}
                 style={[
                   styles.categoryItem,
                   selectedCategory === item.id && styles.selectedCategory,
@@ -228,108 +307,47 @@ export default function Order({ navigation }) {
                   {item.name}
                 </Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <TouchableOpacity style={styles.heartIconContainer}>
-            <Ionicons name="heart-outline" size={24} color="#777" />
-          </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.categoryList}
+          />
         </View>
+        <TouchableOpacity style={styles.heartIconContainer}>
+          <Ionicons name="heart-outline" size={24} color="#777" />
+        </TouchableOpacity>
+      </View>
 
-        {/* Tiêu đề danh mục */}
-        {selectedCategoryName && (
-          <Text style={styles.categoryTitle}>{selectedCategoryName}</Text>
-        )}
+      {selectedCategoryName && (
+        <Text style={styles.categoryTitle}>{selectedCategoryName}</Text>
+      )}
+    </>
+  );
 
-        {/* Phần hiển thị sản phẩm */}
-        <View style={styles.productSection}>
-          {currentProducts.length > 0 ? (
-            currentProducts.map((product) => (
-              <TouchableOpacity
-                key={product.id.toString()}
-                style={styles.productCard}
-                onPress={() => handleProductDetail(product.id)}
-              >
-                <View style={styles.productRow}>
-                  <View style={styles.imageContainer}>
-                    {product.isNew === 1 && (
-                      <View style={styles.newBadge}>
-                        <Text style={styles.newBadgeText}>NEW</Text>
-                      </View>
-                    )}
-                    <Image
-                      source={{ uri: product.image, cache: "reload" }}
-                      style={styles.productImage}
-                      resizeMode="cover"
-                      defaultSource={defaultImage}
-                      onLoad={() =>
-                        console.log(
-                          "Image loaded successfully for",
-                          product.name
-                        )
-                      }
-                      onError={(e) =>
-                        console.log(
-                          "Image load error for",
-                          product.name,
-                          ":",
-                          e.nativeEvent.error
-                        )
-                      }
-                    />
-                  </View>
-                  <View style={styles.productInfo}>
-                    <Text style={styles.productName}>{product.name}</Text>
-                    <Text style={styles.productPrice}>
-                      {(product.discountPrice && product.discountPrice > 0
-                        ? product.discountPrice
-                        : product.price
-                      ).toLocaleString("vi-VN")}{" "}
-                      đ
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => handleProductDetail(product.id)}
-                  >
-                    <Ionicons name="add" size={20} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={{ textAlign: "center", marginTop: 20, color: "#777" }}>
-              Không tìm thấy sản phẩm nào.
-            </Text>
-          )}
-        </View>
-
-        {/* Phân trang */}
-        <View style={styles.paginationContainer}>
-          <TouchableOpacity
-            style={[
-              styles.pageButton,
-              currentPage === 1 && styles.disabledButton,
-            ]}
-            onPress={goToPreviousPage}
-            disabled={currentPage === 1}
-          >
-            <Text style={styles.pageButtonText}>Trước</Text>
-          </TouchableOpacity>
-          <Text style={styles.pageInfo}>
-            Trang {currentPage} / {totalPages}
+  return (
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={displayedProducts}
+        renderItem={({ item }) => <ProductItem product={item} />}
+        keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={
+          <Text style={{ textAlign: "center", marginTop: 20, color: "#777" }}>
+            Không tìm thấy sản phẩm nào.
           </Text>
-          <TouchableOpacity
-            style={[
-              styles.pageButton,
-              currentPage === totalPages && styles.disabledButton,
-            ]}
-            onPress={goToNextPage}
-            disabled={currentPage === totalPages}
-          >
-            <Text style={styles.pageButtonText}>Tiếp</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        }
+        contentContainerStyle={styles.productSection}
+        onEndReached={loadMoreProducts}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isLoading ? (
+            <ActivityIndicator
+              size="small"
+              color="#E57905"
+              style={{ marginVertical: 20 }}
+            />
+          ) : null
+        }
+      />
     </SafeAreaView>
   );
 }

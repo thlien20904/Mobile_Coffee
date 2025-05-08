@@ -34,12 +34,13 @@ import Reviews from "./Screens/Reviews";
 import MyAddresses from "./Screens/MyAddresses";
 import NotificationScreen from "./Screens/NotificationScreen";
 import DiscoverMore from "./Screens/DiscoverMore";
+import PromotionDetail from "./Screens/PromotionDetail";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs({ route }) {
-  const { isLoggedIn, userInfo, updateLoginStatus } = route.params || {};
+  const { isLoggedIn, userInfo } = route.params || {};
 
   return (
     <Tab.Navigator
@@ -81,7 +82,7 @@ function MainTabs({ route }) {
         name="Home"
         component={Home}
         options={{ title: "Trang chủ", headerShown: false }}
-        initialParams={{ isLoggedIn, userInfo, updateLoginStatus }}
+        initialParams={{ isLoggedIn, userInfo }}
       />
       <Tab.Screen
         name="Order"
@@ -102,7 +103,7 @@ function MainTabs({ route }) {
         name="More"
         component={More}
         options={{ title: "Khác", headerShown: false }}
-        initialParams={{ isLoggedIn, userInfo, updateLoginStatus }} // Thêm initialParams
+        initialParams={{ isLoggedIn, userInfo }}
       />
     </Tab.Navigator>
   );
@@ -111,21 +112,6 @@ function MainTabs({ route }) {
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
-
-  // Hàm cập nhật trạng thái đăng nhập
-  const updateLoginStatus = async () => {
-    try {
-      const loggedIn = await AsyncStorage.getItem("isLoggedIn");
-      const user = await AsyncStorage.getItem("userInfo");
-      console.log("isLoggedIn from AsyncStorage:", loggedIn);
-      console.log("userInfo from AsyncStorage:", user);
-      setIsLoggedIn(loggedIn === "true");
-      setUserInfo(user ? JSON.parse(user) : null);
-    } catch (error) {
-      console.error("Error updating login status:", error);
-      setIsLoggedIn(false);
-    }
-  };
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -161,7 +147,7 @@ export default function App() {
             <Stack.Screen
               name="Main"
               component={MainTabs}
-              initialParams={{ isLoggedIn, userInfo, updateLoginStatus }}
+              initialParams={{ isLoggedIn, userInfo }}
             />
             <Stack.Screen name="ProductDetail" component={ProductDetail} />
             <Stack.Screen name="Cart" component={Cart} />
@@ -190,19 +176,16 @@ export default function App() {
               component={NotificationScreen}
             />
             <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
+            <Stack.Screen name="PromotionDetail" component={PromotionDetail} />
           </>
         ) : (
           <>
             <Stack.Screen
               name="Main"
               component={MainTabs}
-              initialParams={{ isLoggedIn, userInfo, updateLoginStatus }}
+              initialParams={{ isLoggedIn, userInfo }}
             />
-            <Stack.Screen
-              name="Login"
-              component={Login}
-              initialParams={{ updateLoginStatus }}
-            />
+            <Stack.Screen name="Login" component={Login} initialParams={{}} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="Forget" component={Forget} />
             <Stack.Screen name="Forget1" component={Forget1} />
@@ -233,6 +216,7 @@ export default function App() {
               component={NotificationScreen}
             />
             <Stack.Screen name="DiscoverMore" component={DiscoverMore} />
+            <Stack.Screen name="PromotionDetail" component={PromotionDetail} />
           </>
         )}
       </Stack.Navigator>

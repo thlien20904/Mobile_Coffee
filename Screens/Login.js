@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,34 +6,15 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Linking,
 } from "react-native";
 import { Ionicons, FontAwesome, Entypo, AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Google from "expo-auth-session/providers/google";
-import * as Facebook from "expo-auth-session/providers/facebook";
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signInWithCredential,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
-} from "firebase/auth";
-import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/Login";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-  projectId: "YOUR_FIREBASE_PROJECT_ID",
-  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
-  appId: "YOUR_FIREBASE_APP_ID",
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const GOOGLE_LOGIN_URL = "https://accounts.google.com";
+const FACEBOOK_LOGIN_URL = "https://www.facebook.com/login";
 
 export default function Login({ navigation, route }) {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -41,11 +22,27 @@ export default function Login({ navigation, route }) {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const {
-    redirectTo = "Main",
-    redirectParams = {},
-    updateLoginStatus,
-  } = route.params || {};
+  const { redirectTo = "Main", redirectParams = {} } = route.params || {}; // Xóa updateLoginStatus
+
+  const handleSocialLogin = async (provider, url) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+        Alert.alert(
+          "Thông báo",
+          `Đã mở trang đăng nhập ${provider}. Sau khi đăng nhập, quay lại ứng dụng và tiếp tục.`
+        );
+      } else {
+        Alert.alert("Lỗi", `Không thể mở URL: ${url}`);
+      }
+    } catch (error) {
+      Alert.alert(
+        "Lỗi",
+        `Không thể mở trang đăng nhập ${provider}: ${error.message}`
+      );
+    }
+  };
 
   const handleLogin = async () => {
     setErrorMessage("");
@@ -56,22 +53,21 @@ export default function Login({ navigation, route }) {
     }
 
     try {
-      const API_URL = `${NGROK_BASE_URL}/api/login`;
+      const API_URL = `${process.env.NGROK_BASE_URL}/api/login`;
+      console.log("Gửi yêu cầu đến:", API_URL);
+      console.log("Dữ liệu gửi đi:", { username, password });
+
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
         },
         body: JSON.stringify({ username, password }),
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (e) {
-        setErrorMessage("Không thể đọc phản hồi từ server.");
-        return;
-      }
+      const data = await response.json();
+      console.log("Phản hồi từ server:", response.status, data);
 
       if (response.status === 200) {
         setErrorMessage("");
@@ -86,19 +82,12 @@ export default function Login({ navigation, route }) {
           avatarUrl: data.user?.avatarUrl || "",
         };
         await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
-        console.log("Stored userInfo:", userInfo);
 
-        // Cập nhật trạng thái đăng nhập trong App.js
-        if (updateLoginStatus) {
-          await updateLoginStatus();
-        }
-
-        // Điều hướng đến LoginSuccess
-        navigation.navigate("LoginSuccess", { redirectTo, redirectParams }); // Sửa từ replace sang navigate
+        navigation.navigate("LoginSuccess", { redirectTo, redirectParams });
       } else {
         const msg = `❌ Đăng nhập thất bại (${response.status}):\n${
           data.error || "Lỗi không xác định"
-        }`;
+        }${data.details ? `\nChi tiết: ${data.details}` : ""}`;
         setErrorMessage(msg);
         Alert.alert("Lỗi đăng nhập", msg);
       }
@@ -107,82 +96,6 @@ export default function Login({ navigation, route }) {
       Alert.alert("Lỗi kết nối", `Lỗi kết nối API: ${error.message}`);
     }
   };
-
-  // Google Login
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: "YOUR_GOOGLE_CLIENT_ID",
-  });
-
-  useEffect(() => {
-    if (response?.type === "success") {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential)
-        .then(async (userCredential) => {
-          const user = userCredential.user;
-          Alert.alert("Success", "Signed in with Google!");
-          await AsyncStorage.setItem("isLoggedIn", "true");
-          await AsyncStorage.setItem(
-            "userInfo",
-            JSON.stringify({
-              username: user.displayName || "",
-              fullName: user.displayName || "",
-              email: user.email || "",
-              phone: user.phoneNumber || "",
-              address: "",
-              avatarUrl: user.photoURL || "",
-            })
-          );
-
-          // Cập nhật trạng thái đăng nhập trong App.js
-          if (updateLoginStatus) {
-            await updateLoginStatus();
-          }
-
-          // Điều hướng đến LoginSuccess
-          navigation.navigate("LoginSuccess", { redirectTo, redirectParams }); // Sửa từ replace sang navigate
-        })
-        .catch(() => Alert.alert("Error", "Google sign-in failed!"));
-    }
-  }, [response]);
-
-  // Facebook Login
-  const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
-    clientId: "YOUR_FACEBOOK_APP_ID",
-  });
-
-  useEffect(() => {
-    if (fbResponse?.type === "success") {
-      const { access_token } = fbResponse.params;
-      const credential = FacebookAuthProvider.credential(access_token);
-      signInWithCredential(auth, credential)
-        .then(async (userCredential) => {
-          const user = userCredential.user;
-          Alert.alert("Success", "Signed in with Facebook!");
-          await AsyncStorage.setItem("isLoggedIn", "true");
-          await AsyncStorage.setItem(
-            "userInfo",
-            JSON.stringify({
-              username: user.displayName || "",
-              fullName: user.displayName || "",
-              email: user.email || "",
-              phone: user.phoneNumber || "",
-              address: "",
-              avatarUrl: user.photoURL || "",
-            })
-          );
-
-          // Cập nhật trạng thái đăng nhập trong App.js
-          if (updateLoginStatus) {
-            await updateLoginStatus();
-          }
-
-          // Điều hướng đến LoginSuccess
-          navigation.navigate("LoginSuccess", { redirectTo, redirectParams }); // Sửa từ replace sang navigate
-        })
-        .catch(() => Alert.alert("Error", "Facebook sign-in failed!"));
-    }
-  }, [fbResponse]);
 
   return (
     <View style={styles.container}>
@@ -263,7 +176,7 @@ export default function Login({ navigation, route }) {
 
       <TouchableOpacity
         style={styles.facebookButton}
-        onPress={() => fbPromptAsync()}
+        onPress={() => handleSocialLogin("Facebook", FACEBOOK_LOGIN_URL)}
       >
         <FontAwesome name="facebook-f" size={20} color="white" />
         <Text style={styles.socialText}> Connect With Facebook</Text>
@@ -271,7 +184,7 @@ export default function Login({ navigation, route }) {
 
       <TouchableOpacity
         style={styles.googleButton}
-        onPress={() => promptAsync()}
+        onPress={() => handleSocialLogin("Google", GOOGLE_LOGIN_URL)}
       >
         <AntDesign name="google" size={20} color="white" />
         <Text style={styles.socialText}> Connect With Google</Text>

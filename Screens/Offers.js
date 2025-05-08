@@ -11,21 +11,11 @@ import {
 } from "react-native";
 import {
   Ionicons,
-  FontAwesome,
   MaterialCommunityIcons,
   AntDesign,
-  MaterialIcons,
 } from "@expo/vector-icons";
 import styles from "../styles/OffersStyles";
-
-// Dữ liệu ảnh cho phần "Đổi Bean" từ thư mục assets
-const exchangeImages = [
-  require("../assets/b1.png"), // [BTASKEE] Giảm 20K tất cả các dịch vụ
-  require("../assets/b2.png"), // [BTASKEE] Giảm 30% dịch vụ Tổng vệ sinh
-  require("../assets/b3.png"), // [BTASKEE] Giảm 85K cho khách hàng mới của bTaskee
-  require("../assets/b4.png"), // Cơm Nhà, Pizza, Pasta giảm 10K
-  require("../assets/db2.png"), // Bánh Mochi Kem chỉ 10K
-];
+import { vouchersData, exchangeData } from "../data/offers"; // Import từ data/offers.js
 
 const Offers = ({ navigation }) => {
   return (
@@ -81,7 +71,7 @@ const Offers = ({ navigation }) => {
             <Text style={styles.progressSubtext}>
               Đổi quà không ảnh hưởng tới việc thăng hạng của bạn
             </Text>
-            <Text style={styles.progressSubtext}>Chưa tích điểmđiểm</Text>
+            <Text style={styles.progressSubtext}>Chưa tích điểm</Text>
           </View>
         </View>
 
@@ -129,33 +119,26 @@ const Offers = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.voucherItem}>
-            <Image
-              source={require("../assets/v1.png")}
-              style={styles.voucherImage}
-              resizeMode="contain"
-            />
-            <View style={styles.voucherDivider} />
-            <View style={styles.voucherInfo}>
-              <Text style={styles.voucherTitle}>Giảm 30K Đơn Từ 99K</Text>
-              <Text style={styles.voucherExpiry}>Hết hạn 30/04/2025</Text>
-            </View>
-          </View>
-
-          <View style={styles.voucherItem}>
-            <Image
-              source={require("../assets/v2.png")}
-              style={styles.voucherImage}
-              resizeMode="contain"
-            />
-            <View style={styles.voucherDivider} />
-            <View style={styles.voucherInfo}>
-              <Text style={styles.voucherTitle}>
-                Giảm 30% + Freeship Đơn Từ 5 Ly
-              </Text>
-              <Text style={styles.voucherExpiry}>Hết hạn 30/04/2025</Text>
-            </View>
-          </View>
+          {vouchersData.map((voucher) => (
+            <TouchableOpacity
+              key={voucher.id}
+              style={styles.voucherItem}
+              onPress={() =>
+                navigation.navigate("PromotionDetail", { promotion: voucher })
+              }
+            >
+              <Image
+                source={voucher.image}
+                style={styles.voucherImage}
+                resizeMode="contain"
+              />
+              <View style={styles.voucherDivider} />
+              <View style={styles.voucherInfo}>
+                <Text style={styles.voucherTitle}>{voucher.title}</Text>
+                <Text style={styles.voucherExpiry}>{voucher.date}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View style={styles.exchangeSection}>
@@ -168,68 +151,24 @@ const Offers = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.exchangeItem}>
-            <Image source={exchangeImages[0]} style={styles.exchangeImage} />
-            <View style={styles.exchangeInfo}>
-              <Text style={styles.exchangeTitle}>
-                [BTASKEE] Giảm 20K tất cả các dịch vụ
-              </Text>
-              <View style={styles.beanBadge}>
-                <Text style={styles.beanCount}>99</Text>
-                <Text style={styles.beanLabel}>BEAN</Text>
+          {exchangeData.map((exchange) => (
+            <TouchableOpacity
+              key={exchange.id}
+              style={styles.exchangeItem}
+              onPress={() =>
+                navigation.navigate("PromotionDetail", { promotion: exchange })
+              }
+            >
+              <Image source={exchange.image} style={styles.exchangeImage} />
+              <View style={styles.exchangeInfo}>
+                <Text style={styles.exchangeTitle}>{exchange.title}</Text>
+                <View style={styles.beanBadge}>
+                  <Text style={styles.beanCount}>{exchange.beanCost}</Text>
+                  <Text style={styles.beanLabel}>BEAN</Text>
+                </View>
               </View>
-            </View>
-          </View>
-
-          <View style={styles.exchangeItem}>
-            <Image source={exchangeImages[1]} style={styles.exchangeImage} />
-            <View style={styles.exchangeInfo}>
-              <Text style={styles.exchangeTitle}>
-                [BTASKEE] Giảm 30% dịch vụ Tổng vệ sinh
-              </Text>
-              <View style={styles.beanBadge}>
-                <Text style={styles.beanCount}>99</Text>
-                <Text style={styles.beanLabel}>BEAN</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.exchangeItem}>
-            <Image source={exchangeImages[2]} style={styles.exchangeImage} />
-            <View style={styles.exchangeInfo}>
-              <Text style={styles.exchangeTitle}>
-                [BTASKEE] Giảm 85K cho khách hàng mới của bTaskee
-              </Text>
-              <View style={styles.beanBadge}>
-                <Text style={styles.beanCount}>99</Text>
-                <Text style={styles.beanLabel}>BEAN</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.exchangeItem}>
-            <Image source={exchangeImages[3]} style={styles.exchangeImage} />
-            <View style={styles.exchangeInfo}>
-              <Text style={styles.exchangeTitle}>
-                Cơm Nhà, Pizza, Pasta giảm 10K
-              </Text>
-              <View style={styles.beanBadge}>
-                <Text style={styles.beanCount}>400</Text>
-                <Text style={styles.beanLabel}>BEAN</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.exchangeItem}>
-            <Image source={exchangeImages[4]} style={styles.exchangeImage} />
-            <View style={styles.exchangeInfo}>
-              <Text style={styles.exchangeTitle}>Bánh Mochi Kem chỉ 10K</Text>
-              <View style={styles.beanBadge}>
-                <Text style={styles.beanCount}>400</Text>
-                <Text style={styles.beanLabel}>BEAN</Text>
-              </View>
-            </View>
-          </View>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

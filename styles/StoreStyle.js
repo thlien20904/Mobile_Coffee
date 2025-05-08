@@ -143,4 +143,13 @@ export default StyleSheet.create({
     fontSize: 16,
     color: "#777",
   },
+  mapContainer: {
+    flex: 1,
+    height: "100%",
+  },
+  storeDistance: {
+    fontSize: 12,
+    color: "#777",
+    marginTop: 2,
+  },
 });

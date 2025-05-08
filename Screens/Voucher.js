@@ -27,31 +27,32 @@ const Voucher = ({ navigation }) => {
     {
       id: "1",
       logo: require("../assets/v1.png"),
-      title: "Giảm 40% + FREESHIP Đơn từ 10 Ly (tối đa 500K)",
+      title:
+        "Nhập mã GIAM10KM - Giảm 40% + FREESHIP Đơn từ 10 Ly (tối đa 500K)",
       expiryDate: "30/04/2025",
     },
     {
       id: "2",
       logo: require("../assets/v2.png"),
-      title: "Giảm 30% + Freeship Đơn Từ 5 Ly",
+      title: "Nhập mã GIAM30K - Giảm 30K Đơn Từ 99K",
       expiryDate: "30/04/2025",
     },
     {
       id: "3",
       logo: require("../assets/v3.png"),
-      title: "Giảm 30K Đơn Từ 99K",
+      title: "Nhập mã GIAM30KM - Giảm 30% + Freeship Đơn Từ 5 Ly",
       expiryDate: "30/04/2025",
     },
     {
       id: "4",
       logo: require("../assets/v4.png"),
-      title: "Giảm 20K Đơn Từ 60K",
+      title: "Nhập mã GIAM20K - Giảm 20K Đơn Từ 60K",
       expiryDate: "30/04/2025",
     },
     {
       id: "5",
       logo: require("../assets/v5.png"),
-      title: "Miễn phí vận chuyển",
+      title: "Nhập mã FREESHIP - Miễn phí vận chuyển",
       expiryDate: "30/04/2025",
     },
   ];
