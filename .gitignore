@@ -5,4 +5,5 @@ cert.pem
 GoogleService-Info.plist
 firebaseConfig.js
 socialRoutes.js
+babel.config.js
 *.sql

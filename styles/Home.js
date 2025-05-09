@@ -34,6 +34,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 8,
   },
+  cartBadge: {
+    position: "relative",
+  },
+  cartCount: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "#FF4444",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    textAlign: "center",
+    color: "#FFF",
+    fontSize: 12,
+    fontWeight: "bold",
+    paddingHorizontal: 2,
+  },
   greeting: {
     fontSize: 20,
     fontWeight: "bold",

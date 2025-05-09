@@ -38,7 +38,7 @@ router.get("/stores/:id", async (req, res) => {
       return res.status(404).json({ error: "Không tìm thấy cửa hàng." });
     }
 
-    console.log("Store fetched successfully:", result.audioRecordset[0]);
+    console.log("Store fetched successfully:", result.recordset[0]);
     res.status(200).json(result.recordset[0]);
   } catch (err) {
     console.error("Error fetching store:", err);

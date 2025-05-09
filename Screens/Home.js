@@ -42,25 +42,16 @@ const defaultImage = require("../assets/banner.png");
 // Lấy chiều rộng màn hình để set kích thước ảnh
 const { width: screenWidth } = Dimensions.get("window");
 
-export default function Home({ navigation, route }) {
+// Component riêng cho banner carousel
+const BannerCarousel = ({ navigation }) => {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [products, setProducts] = useState([]); // Tất cả sản phẩm từ server
-  const [displayedProducts, setDisplayedProducts] = useState([]); // Sản phẩm hiển thị
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    route.params?.isLoggedIn || false
-  );
-  const [userInfo, setUserInfo] = useState(route.params?.userInfo || null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Trạng thái loading
-  const productsPerLoad = 6; // Số sản phẩm load mỗi lần
-  const bannerRef = useRef(null); // Ref cho FlatList banner
+  const bannerRef = useRef(null);
 
-  // Tự động chuyển slide sau 2 giây
+  // Tự động chuyển slide sau 5 giây
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveSlide((prev) => {
-        const nextSlide = (prev + 1) % bannerImages.length; // Vòng lặp
+        const nextSlide = (prev + 1) % bannerImages.length;
         if (bannerRef.current) {
           bannerRef.current.scrollToIndex({
             index: nextSlide,
@@ -69,9 +60,104 @@ export default function Home({ navigation, route }) {
         }
         return nextSlide;
       });
-    }, 5000); // 2 giây
+    }, 5000);
 
-    return () => clearInterval(interval); // Dọn dẹp khi component unmount
+    return () => clearInterval(interval);
+  }, []);
+
+  const renderBannerItem = useCallback(
+    ({ item }) => (
+      <TouchableOpacity
+        style={styles.promotionBanner}
+        onPress={() => navigation.navigate("Order")}
+      >
+        <Image
+          source={item}
+          style={{
+            width: screenWidth - 40,
+            height: 150,
+            borderRadius: 12,
+          }}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
+    ),
+    [navigation]
+  );
+
+  const getBannerItemLayout = (data, index) => ({
+    length: screenWidth - 40,
+    offset: (screenWidth - 40) * index,
+    index,
+  });
+
+  return (
+    <View style={[styles.promotionContainer, { height: 150 }]}>
+      <FlatList
+        ref={bannerRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        data={bannerImages}
+        renderItem={renderBannerItem}
+        keyExtractor={(item, index) => index.toString()}
+        onMomentumScrollEnd={(event) => {
+          const slideIndex = Math.round(
+            event.nativeEvent.contentOffset.x / (screenWidth - 40)
+          );
+          setActiveSlide(slideIndex);
+        }}
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        windowSize={2}
+        getItemLayout={getBannerItemLayout}
+      />
+      <View style={styles.paginationDots}>
+        {bannerImages.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.paginationDot,
+              index === activeSlide ? styles.activeDot : null,
+            ]}
+          />
+        ))}
+      </View>
+    </View>
+  );
+};
+
+export default function Home({ navigation, route }) {
+  const [activeSlide, setActiveSlide] = useState(0); // Giữ nguyên nhưng sẽ không dùng trực tiếp
+  const [products, setProducts] = useState([]);
+  const [displayedProducts, setDisplayedProducts] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    route.params?.isLoggedIn || false
+  );
+  const [userInfo, setUserInfo] = useState(route.params?.userInfo || null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const productsPerLoad = 6;
+  const bannerRef = useRef(null);
+
+  // Tự động chuyển slide sau 5 giây (giữ nguyên nhưng sẽ không dùng)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => {
+        const nextSlide = (prev + 1) % bannerImages.length;
+        if (bannerRef.current) {
+          bannerRef.current.scrollToIndex({
+            index: nextSlide,
+            animated: true,
+          });
+        }
+        return nextSlide;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Lọc sản phẩm dựa trên searchQuery
@@ -81,12 +167,12 @@ export default function Home({ navigation, route }) {
     );
   }, [products, searchQuery]);
 
-  // Cập nhật danh sách hiển thị ban đầu khi products hoặc searchQuery thay đổi
+  // Cập nhật danh sách hiển thị ban đầu
   useEffect(() => {
     setDisplayedProducts(filteredProducts.slice(0, productsPerLoad));
   }, [filteredProducts]);
 
-  // Cập nhật trạng thái khi route.params thay đổi
+  // Cập nhật trạng thái từ route.params
   useEffect(() => {
     if (route.params?.isLoggedIn !== undefined) {
       setIsLoggedIn(route.params.isLoggedIn);
@@ -96,7 +182,7 @@ export default function Home({ navigation, route }) {
     }
   }, [route.params?.isLoggedIn, route.params?.userInfo]);
 
-  // Kiểm tra AsyncStorage như dự phòng
+  // Kiểm tra AsyncStorage
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -130,11 +216,6 @@ export default function Home({ navigation, route }) {
           },
         });
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Phản hồi từ server không phải JSON");
-        }
-
         if (!response.ok) {
           const errorData = await response.json();
           setErrorMessage(errorData.error || "Lỗi khi lấy danh sách sản phẩm.");
@@ -143,10 +224,11 @@ export default function Home({ navigation, route }) {
         }
 
         const data = await response.json();
+        console.log("Fetched products:", data);
         setProducts(data);
         setErrorMessage("");
       } catch (error) {
-        console.error("Error fetching products:", error.message);
+        console.error("Error fetching products:", error);
         setErrorMessage("Lỗi khi lấy danh sách sản phẩm: " + error.message);
         setProducts([]);
       }
@@ -154,6 +236,48 @@ export default function Home({ navigation, route }) {
 
     fetchProducts();
   }, []);
+
+  // Lấy tổng số lượng sản phẩm trong giỏ hàng
+  const fetchCartCount = async () => {
+    if (!isLoggedIn || !userInfo?.username) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${NGROK_BASE_URL}/api/cart?username=${userInfo.username}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            "ngrok-skip-browser-warning": "true",
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        const totalQuantity = data.reduce(
+          (total, item) => total + (item.quantity || 0),
+          0
+        );
+        console.log("Cart count updated:", totalQuantity);
+        setCartCount(totalQuantity);
+      } else {
+        console.error("Error fetching cart count:", data.error);
+        setCartCount(0);
+      }
+    } catch (error) {
+      console.error("Error fetching cart count:", error);
+      setCartCount(0);
+    }
+  };
+
+  // Gọi fetchCartCount khi userInfo hoặc cartUpdated thay đổi
+  useEffect(() => {
+    fetchCartCount();
+  }, [userInfo, route.params?.cartUpdated]);
 
   // Hàm đăng xuất
   const handleLogout = async () => {
@@ -163,6 +287,7 @@ export default function Home({ navigation, route }) {
       console.log("AsyncStorage cleared");
       setIsLoggedIn(false);
       setUserInfo(null);
+      setCartCount(0);
       navigation.navigate("Main");
     } catch (error) {
       console.error("Error logging out:", error);
@@ -187,7 +312,7 @@ export default function Home({ navigation, route }) {
           redirectTo: "Cart",
           redirectParams: {
             newItem: {
-              foodId: product.id,
+              id: product.id,
               name: product.name,
               price:
                 product.discountPrice && product.discountPrice > 0
@@ -229,11 +354,6 @@ export default function Home({ navigation, route }) {
           }),
         });
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Phản hồi từ server không phải JSON");
-        }
-
         if (!response.ok) {
           const errorData = await response.json();
           setErrorMessage(errorData.error || "Lỗi khi thêm vào giỏ hàng.");
@@ -242,9 +362,10 @@ export default function Home({ navigation, route }) {
 
         await response.json();
         setErrorMessage("");
+        fetchCartCount();
         navigation.navigate("Cart");
       } catch (error) {
-        console.error("Error adding to cart:", error.message);
+        console.error("Error adding to cart:", error);
         setErrorMessage("Lỗi khi thêm vào giỏ hàng: " + error.message);
       }
     },
@@ -273,74 +394,62 @@ export default function Home({ navigation, route }) {
 
   // Component render từng ảnh trong banner
   const renderBannerItem = useCallback(
-    ({ item }) => {
-      console.log("Rendering banner item:", item); // Debug render
-      return (
-        <TouchableOpacity
-          style={styles.promotionBanner}
-          onPress={() => navigation.navigate("Order")}
-        >
-          <Image
-            source={item}
-            style={{
-              width: screenWidth - 40,
-              height: 150,
-              borderRadius: 12,
-            }}
-            resizeMode="contain"
-            onError={(e) =>
-              console.log("Banner image load error:", e.nativeEvent.error)
-            }
-          />
-        </TouchableOpacity>
-      );
-    },
+    ({ item }) => (
+      <TouchableOpacity
+        style={styles.promotionBanner}
+        onPress={() => navigation.navigate("Order")}
+      >
+        <Image
+          source={item}
+          style={{
+            width: screenWidth - 40,
+            height: 150,
+            borderRadius: 12,
+          }}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
+    ),
     [navigation]
   );
 
   // Component render từng ưu đãi đặc biệt
   const renderOfferItem = useCallback(
-    ({ item, index }) => {
-      console.log("Offer image source:", item.image);
-      return (
+    ({ item, index }) => (
+      <TouchableOpacity
+        key={index}
+        style={styles.offerCard}
+        onPress={() =>
+          navigation.navigate("PromotionDetail", { promotion: item })
+        }
+      >
+        <Image
+          source={item.image}
+          style={{
+            width: 180,
+            height: 200,
+            borderRadius: 8,
+          }}
+          resizeMode="cover"
+          defaultSource={defaultImage}
+        />
+        <Text style={styles.offerSubtitle}>{item.subtitle}</Text>
+        <Text style={styles.offerTitle}>{item.title}</Text>
+        <View style={styles.offerDateContainer}>
+          <Ionicons name="calendar-outline" size={14} color="#777" />
+          <Text style={styles.offerDate}> {item.date}</Text>
+        </View>
         <TouchableOpacity
-          key={index}
-          style={styles.offerCard}
           onPress={() =>
             navigation.navigate("PromotionDetail", { promotion: item })
           }
         >
-          <Image
-            source={item.image}
-            style={{
-              width: 180,
-              height: 200,
-              borderRadius: 8,
-            }}
-            resizeMode="cover"
-            defaultSource={defaultImage}
-            onError={(e) =>
-              console.log("Offer image load error:", e.nativeEvent.error)
-            }
-          />
-          <Text style={styles.offerSubtitle}>{item.subtitle}</Text>
-          <Text style={styles.offerTitle}>{item.title}</Text>
-          <View style={styles.offerDateContainer}>
-            <Ionicons name="calendar-outline" size={14} color="#777" />
-            <Text style={styles.offerDate}> {item.date}</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("PromotionDetail", { promotion: item })
-            }
-          >
-            <Text style={{ color: "#E57905", fontSize: 12, marginTop: 5 }}>
-              Khám phá thêm
-            </Text>
-          </TouchableOpacity>
+          <Text style={{ color: "#E57905", fontSize: 12, marginTop: 5 }}>
+            Khám phá thêm
+          </Text>
         </TouchableOpacity>
-      );
-    },
+      </TouchableOpacity>
+    ),
     [navigation]
   );
 
@@ -362,9 +471,6 @@ export default function Home({ navigation, route }) {
           style={styles.productImage}
           resizeMode="cover"
           defaultSource={defaultImage}
-          onError={(e) =>
-            console.log("Product image load error:", e.nativeEvent.error)
-          }
         />
         <Text style={styles.productName}>{item.name}</Text>
         <View style={styles.productPriceContainer}>
@@ -396,7 +502,7 @@ export default function Home({ navigation, route }) {
 
   // Hàm tối ưu layout cho offer
   const getOfferItemLayout = (data, index) => ({
-    length: 200, // Điều chỉnh thành width thực tế của offerCard
+    length: 200,
     offset: 200 * index,
     index,
   });
@@ -408,7 +514,7 @@ export default function Home({ navigation, route }) {
     index,
   });
 
-  // Header của FlatList (bao gồm tất cả nội dung tĩnh)
+  // Header của FlatList
   const renderHeader = useCallback(
     () => (
       <>
@@ -420,15 +526,21 @@ export default function Home({ navigation, route }) {
           </View>
         ) : null}
 
-        {/* Header tùy thuộc trạng thái đăng nhập */}
         {isLoggedIn ? (
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <TouchableOpacity
                 style={styles.logoContainer}
-                onPress={() => navigation.navigate("Cart")}
+                onPress={() =>
+                  navigation.navigate("Cart", { cartUpdated: true })
+                }
               >
-                <Ionicons name="cart-outline" size={24} color="#E57905" />
+                <View style={styles.cartBadge}>
+                  <Ionicons name="cart-outline" size={24} color="#E57905" />
+                  {cartCount > 0 && (
+                    <Text style={styles.cartCount}>{cartCount}</Text>
+                  )}
+                </View>
               </TouchableOpacity>
               <Text style={styles.greeting}>Suli Coffee</Text>
             </View>
@@ -441,12 +553,9 @@ export default function Home({ navigation, route }) {
                       headers: {
                         "ngrok-skip-browser-warning": "true",
                       },
-                      cache: "reload",
+                      cache: "force-cache", // Sử dụng cache để tránh load lại
                     }}
                     style={styles.avatar}
-                    onError={(e) =>
-                      console.log("Avatar load error:", e.nativeEvent.error)
-                    }
                   />
                 ) : (
                   <Ionicons
@@ -469,7 +578,9 @@ export default function Home({ navigation, route }) {
             <View style={styles.headerLeft}>
               <TouchableOpacity
                 style={styles.logoContainer}
-                onPress={() => navigation.navigate("Cart")}
+                onPress={() =>
+                  navigation.navigate("Cart", { cartUpdated: true })
+                }
               >
                 <Ionicons name="cart-outline" size={24} color="#E57905" />
               </TouchableOpacity>
@@ -488,7 +599,6 @@ export default function Home({ navigation, route }) {
           </View>
         )}
 
-        {/* Giao diện đăng nhập nếu chưa đăng nhập */}
         {!isLoggedIn && (
           <View style={styles.loginCard}>
             <View style={styles.loginCardContent}>
@@ -511,7 +621,6 @@ export default function Home({ navigation, route }) {
           </View>
         )}
 
-        {/* Các phần dịch vụ, banner, và khám phá */}
         <View style={styles.serviceContainer}>
           <FlatList
             horizontal
@@ -536,9 +645,15 @@ export default function Home({ navigation, route }) {
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.serviceItem}
-                onPress={() =>
-                  item.screen ? navigation.navigate(item.screen) : null
-                }
+                onPress={() => {
+                  if (item.screen === "OrderHistory" && !isLoggedIn) {
+                    navigation.navigate("Login", {
+                      redirectTo: "OrderHistory",
+                    });
+                  } else if (item.screen) {
+                    navigation.navigate(item.screen);
+                  }
+                }}
               >
                 <View style={styles.serviceIconContainer}>
                   {item.icon === "motorcycle" || item.icon === "ticket" ? (
@@ -562,39 +677,8 @@ export default function Home({ navigation, route }) {
           />
         </View>
 
-        <View style={[styles.promotionContainer, { height: 150 }]}>
-          <FlatList
-            ref={bannerRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            data={bannerImages}
-            renderItem={renderBannerItem}
-            keyExtractor={(item, index) => index.toString()}
-            onMomentumScrollEnd={(event) => {
-              const slideIndex = Math.round(
-                event.nativeEvent.contentOffset.x / (screenWidth - 40)
-              );
-              console.log("Scroll to slide:", slideIndex); // Debug slide
-              setActiveSlide(slideIndex);
-            }}
-            initialNumToRender={2}
-            maxToRenderPerBatch={2}
-            windowSize={2}
-            getItemLayout={getBannerItemLayout}
-          />
-          <View style={styles.paginationDots}>
-            {bannerImages.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.paginationDot,
-                  index === activeSlide ? styles.activeDot : null,
-                ]}
-              />
-            ))}
-          </View>
-        </View>
+        {/* Thay phần banner bằng component BannerCarousel */}
+        <BannerCarousel navigation={navigation} />
 
         <View style={styles.discoverSection}>
           <View style={styles.sectionHeader}>
@@ -633,7 +717,6 @@ export default function Home({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {/* Thanh tìm kiếm */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -650,21 +733,12 @@ export default function Home({ navigation, route }) {
           />
         </View>
 
-        {/* Phần tiêu đề sản phẩm */}
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>Sản phẩm</Text>
         </View>
       </>
     ),
-    [
-      isLoggedIn,
-      userInfo,
-      errorMessage,
-      activeSlide,
-      navigation,
-      renderBannerItem,
-      renderOfferItem,
-    ]
+    [isLoggedIn, userInfo, errorMessage, cartCount, navigation, renderOfferItem] // Loại bỏ activeSlide khỏi dependency
   );
 
   return (

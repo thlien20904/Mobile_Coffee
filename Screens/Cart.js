@@ -19,6 +19,7 @@ const defaultImage = require("../assets/banner.png");
 export default function Cart({ route, navigation }) {
   const [cartItems, setCartItems] = useState([]);
   const [username, setUsername] = useState(null);
+  const [selectedItems, setSelectedItems] = useState(new Set());
 
   // Lấy username từ AsyncStorage và kiểm tra đăng nhập
   useEffect(() => {
@@ -57,23 +58,30 @@ export default function Cart({ route, navigation }) {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
+              "Cache-Control": "no-cache",
+              "ngrok-skip-browser-warning": "true",
             },
           }
         );
 
         const data = await response.json();
         if (response.ok) {
+          console.log("Fetched cart items:", data);
           setCartItems(data);
+          setSelectedItems(new Set(data.map((item) => item.gioHangId)));
         } else {
           Alert.alert("Lỗi", data.error || "Không thể lấy giỏ hàng.");
+          setCartItems([]);
         }
       } catch (error) {
+        console.error("Error fetching cart:", error);
         Alert.alert("Lỗi", "Đã xảy ra lỗi khi lấy giỏ hàng: " + error.message);
+        setCartItems([]);
       }
     };
 
     fetchCart();
-  }, [username]);
+  }, [username, route.params?.cartUpdated]);
 
   // Thêm sản phẩm mới vào giỏ hàng
   useEffect(() => {
@@ -91,6 +99,7 @@ export default function Cart({ route, navigation }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
           },
           body: JSON.stringify({
             username,
@@ -102,13 +111,26 @@ export default function Cart({ route, navigation }) {
 
         const data = await response.json();
         if (response.ok) {
-          console.log("Thêm sản phẩm vào giỏ hàng thành công!");
           const fetchResponse = await fetch(
-            `${NGROK_BASE_URL}/api/cart?username=${username}`
+            `${NGROK_BASE_URL}/api/cart?username=${username}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+                "ngrok-skip-browser-warning": "true",
+              },
+            }
           );
           const fetchData = await fetchResponse.json();
           if (fetchResponse.ok) {
+            console.log("Updated cart after adding item:", fetchData);
             setCartItems(fetchData);
+            setSelectedItems(new Set(fetchData.map((item) => item.gioHangId)));
+          } else {
+            Alert.alert(
+              "Lỗi",
+              "Không thể cập nhật giỏ hàng sau khi thêm sản phẩm."
+            );
           }
         } else {
           Alert.alert(
@@ -117,6 +139,7 @@ export default function Cart({ route, navigation }) {
           );
         }
       } catch (error) {
+        console.error("Error adding to cart:", error);
         Alert.alert("Lỗi", "Đã xảy ra lỗi khi thêm sản phẩm: " + error.message);
       }
     };
@@ -133,6 +156,7 @@ export default function Cart({ route, navigation }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
         },
         body: JSON.stringify({
           quantity: newQuantity,
@@ -157,6 +181,7 @@ export default function Cart({ route, navigation }) {
         Alert.alert("Lỗi", data.error || "Không thể cập nhật số lượng.");
       }
     } catch (error) {
+      console.error("Error increasing quantity:", error);
       Alert.alert(
         "Lỗi",
         "Đã xảy ra lỗi khi cập nhật số lượng: " + error.message
@@ -175,6 +200,7 @@ export default function Cart({ route, navigation }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
         },
         body: JSON.stringify({
           quantity: newQuantity,
@@ -199,6 +225,7 @@ export default function Cart({ route, navigation }) {
         Alert.alert("Lỗi", data.error || "Không thể cập nhật số lượng.");
       }
     } catch (error) {
+      console.error("Error decreasing quantity:", error);
       Alert.alert(
         "Lỗi",
         "Đã xảy ra lỗi khi cập nhật số lượng: " + error.message
@@ -212,6 +239,7 @@ export default function Cart({ route, navigation }) {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
         },
       });
 
@@ -220,28 +248,74 @@ export default function Cart({ route, navigation }) {
         setCartItems((prevItems) =>
           prevItems.filter((item) => item.gioHangId !== gioHangId)
         );
+        setSelectedItems((prevSelected) => {
+          const newSelected = new Set(prevSelected);
+          newSelected.delete(gioHangId);
+          return newSelected;
+        });
       } else {
         Alert.alert("Lỗi", data.error || "Không thể xóa sản phẩm.");
       }
     } catch (error) {
+      console.error("Error removing item:", error);
       Alert.alert("Lỗi", "Đã xảy ra lỗi khi xóa sản phẩm: " + error.message);
     }
   };
 
+  const toggleSelectItem = (gioHangId) => {
+    setSelectedItems((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+      if (newSelected.has(gioHangId)) {
+        newSelected.delete(gioHangId);
+      } else {
+        newSelected.add(gioHangId);
+      }
+      return newSelected;
+    });
+  };
+
+  const selectAllItems = () => {
+    setSelectedItems(new Set(cartItems.map((item) => item.gioHangId)));
+  };
+
   const calculateTotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + (item.totalPrice || item.price * item.quantity),
-      0
-    );
+    return cartItems
+      .filter((item) => selectedItems.has(item.gioHangId))
+      .reduce(
+        (total, item) =>
+          total + (item.totalPrice || item.price * item.quantity),
+        0
+      );
   };
 
   const handleCheckout = () => {
-    if (cartItems.length === 0) return;
-    navigation.navigate("Checkout", { buyItems: cartItems });
+    const buyItems = cartItems.filter((item) =>
+      selectedItems.has(item.gioHangId)
+    );
+    if (buyItems.length === 0) {
+      Alert.alert(
+        "Thông báo",
+        "Vui lòng chọn ít nhất một sản phẩm để thanh toán."
+      );
+      return;
+    }
+    navigation.navigate("Checkout", { buyItems });
   };
 
   const CartItem = React.memo(({ item }) => (
     <View style={styles.cartItem}>
+      <TouchableOpacity
+        style={styles.selectButton}
+        onPress={() => toggleSelectItem(item.gioHangId)}
+      >
+        <Ionicons
+          name={
+            selectedItems.has(item.gioHangId) ? "checkbox" : "square-outline"
+          }
+          size={24}
+          color={selectedItems.has(item.gioHangId) ? "#E57905" : "#000"}
+        />
+      </TouchableOpacity>
       <Image
         source={{ uri: item.image, cache: "reload" }}
         style={styles.itemImage}
@@ -290,7 +364,7 @@ export default function Cart({ route, navigation }) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.navigate("Main")}
+          onPress={() => navigation.navigate("Main", { screen: "Home" })}
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -302,13 +376,19 @@ export default function Cart({ route, navigation }) {
           <Text style={styles.emptyCartText}>Giỏ hàng của bạn đang trống!</Text>
           <TouchableOpacity
             style={styles.continueShoppingButton}
-            onPress={() => navigation.navigate("Main")}
+            onPress={() => navigation.navigate("Main", { screen: "Home" })}
           >
             <Text style={styles.continueShoppingText}>Tiếp tục mua sắm</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <>
+          <TouchableOpacity
+            style={styles.selectAllButton}
+            onPress={selectAllItems}
+          >
+            <Text style={styles.selectAllText}>Chọn tất cả</Text>
+          </TouchableOpacity>
           <FlatList
             data={cartItems}
             renderItem={renderCartItem}

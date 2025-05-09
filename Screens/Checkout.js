@@ -111,6 +111,7 @@ export default function Checkout({ route, navigation }) {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
             },
           });
 
@@ -148,6 +149,7 @@ export default function Checkout({ route, navigation }) {
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true",
               },
             });
 
@@ -212,6 +214,7 @@ export default function Checkout({ route, navigation }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
         },
         body: JSON.stringify(updatedUserInfo),
       });
@@ -256,6 +259,7 @@ export default function Checkout({ route, navigation }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
           },
           body: JSON.stringify(payload),
         }
@@ -298,6 +302,7 @@ export default function Checkout({ route, navigation }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
         },
         body: JSON.stringify(payload),
       });
@@ -377,6 +382,7 @@ export default function Checkout({ route, navigation }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
         },
         body: JSON.stringify(orderData),
       });
@@ -386,8 +392,42 @@ export default function Checkout({ route, navigation }) {
         throw new Error(errorData.error || "Đặt hàng thất bại.");
       }
 
+      // Xóa các sản phẩm đã thanh toán khỏi giỏ hàng
+      const cartResponse = await fetch(
+        `${NGROK_BASE_URL}/api/cart?username=${userInfo.username}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            "ngrok-skip-browser-warning": "true",
+          },
+        }
+      );
+      const cartData = await cartResponse.json();
+      if (!cartResponse.ok) {
+        throw new Error("Không thể lấy giỏ hàng để xóa sản phẩm.");
+      }
+
+      const removePromises = items.map((item) => {
+        const cartItem = cartData.find((cartItem) => cartItem.id === item.id);
+        if (cartItem) {
+          return fetch(`${NGROK_BASE_URL}/api/cart/${cartItem.gioHangId}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+          });
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(removePromises);
+
+      // Thanh toán thành công, điều hướng đến OrderConfirmation
       Alert.alert("Thành công", "Đặt hàng thành công!");
-      navigation.navigate("OrderConfirmation");
+      navigation.navigate("OrderConfirmation", { paymentSuccess: true });
     } catch (error) {
       console.error("Error placing order:", error);
       Alert.alert("Lỗi", `Lỗi: ${error.message}`);
@@ -403,7 +443,7 @@ export default function Checkout({ route, navigation }) {
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => navigation.navigate("Main")}
+              onPress={() => navigation.navigate("Main", { screen: "Home" })}
             >
               <Ionicons name="arrow-back" size={24} color="#000" />
             </TouchableOpacity>
@@ -750,7 +790,7 @@ export default function Checkout({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // Đặt offset về 0 để tránh đẩy quá nhiều
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
         style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>

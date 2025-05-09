@@ -53,6 +53,10 @@ export default StyleSheet.create({
     marginBottom: 10,
     alignItems: "center",
   },
+  selectButton: {
+    padding: 10,
+    marginRight: 10,
+  },
   itemImage: {
     width: 60,
     height: 60,
@@ -84,6 +88,19 @@ export default StyleSheet.create({
   },
   removeButton: {
     padding: 5,
+  },
+  selectAllButton: {
+    padding: 10,
+    backgroundColor: "#E57905",
+    borderRadius: 5,
+    alignItems: "center",
+    marginHorizontal: 15,
+    marginBottom: 10,
+  },
+  selectAllText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   footer: {
     padding: 15,

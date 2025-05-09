@@ -10,10 +10,9 @@ import { Ionicons } from "@expo/vector-icons";
 import styles from "../styles/OrderConfirmation";
 
 export default function OrderConfirmation({ navigation }) {
-  const scaleValue = new Animated.Value(0); // Giá trị ban đầu của scale
+  const scaleValue = new Animated.Value(0);
 
   useEffect(() => {
-    // Tạo animation phóng to
     Animated.spring(scaleValue, {
       toValue: 1,
       friction: 5,
@@ -42,7 +41,12 @@ export default function OrderConfirmation({ navigation }) {
         </Text>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => navigation.navigate("Main", { screen: "Order" })}
+          onPress={() =>
+            navigation.navigate("Main", {
+              screen: "Home",
+              params: { cartUpdated: true },
+            })
+          }
         >
           <Text style={styles.continueText}>Tiếp tục mua sắm</Text>
         </TouchableOpacity>

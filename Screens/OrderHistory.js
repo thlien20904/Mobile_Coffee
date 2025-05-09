@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -73,15 +73,17 @@ const MemoizedOrder = React.memo(({ order, onCancel }) => {
   );
 });
 
-export default function OrderHistory({ navigation, route }) {
+export default function OrderHistory({ navigation }) {
   const [allOrders, setAllOrders] = useState([]); // Tất cả đơn hàng từ server
   const [displayedOrders, setDisplayedOrders] = useState([]); // Đơn hàng hiển thị
   const [selectedTab, setSelectedTab] = useState(1);
-  const [isLoading, setIsLoading] = useState(false); // Trạng thái loading
+  const [isLoading, setIsLoading] = useState(false);
   const ordersPerLoad = 2; // Số đơn hàng load mỗi lần
 
-  const fetchOrderHistory = async () => {
+  // Hàm lấy lịch sử đơn hàng
+  const fetchOrderHistory = useCallback(async () => {
     try {
+      setIsLoading(true);
       const storedUserInfo = await AsyncStorage.getItem("userInfo");
       let username = "";
       if (storedUserInfo) {
@@ -90,58 +92,98 @@ export default function OrderHistory({ navigation, route }) {
       }
 
       if (!username) {
-        Alert.alert("Lỗi", "Vui lòng đăng nhập lại.");
-        navigation.navigate("Login");
+        Alert.alert("Lỗi", "Vui lòng đăng nhập lại.", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ]);
         return;
       }
 
       const API_URL = `${NGROK_BASE_URL}/api/order-history?username=${username}`;
       const response = await fetch(API_URL, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          "ngrok-skip-browser-warning": "true",
+        },
       });
 
-      const data = await response.json();
-      if (response.status === 200) {
-        const orders = data.data.orders || [];
-        setAllOrders(orders);
-        // Hiển thị ban đầu: chỉ lấy ordersPerLoad đơn hàng đầu tiên
-        const filtered = orders.filter(
-          (order) => order.StatusId === selectedTab
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text(); // Lấy nội dung lỗi để debug
+        console.error("Non-JSON response:", text);
+        throw new Error(
+          "Phản hồi từ server không phải JSON: " + text.substring(0, 100)
         );
-        setDisplayedOrders(filtered.slice(0, ordersPerLoad));
-      } else {
-        Alert.alert("Lỗi", "Không thể lấy lịch sử đơn hàng từ server.");
       }
-    } catch (error) {
-      Alert.alert("Lỗi kết nối", `Lỗi kết nối API: ${error.message}`);
-    }
-  };
-
-  const cancelOrder = async (orderId) => {
-    try {
-      const API_URL = `${NGROK_BASE_URL}/api/cancel-order`;
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId }),
-      });
 
       const data = await response.json();
-      if (response.status === 200) {
-        Alert.alert("Thành công", "Đơn hàng đã được hủy.");
-        fetchOrderHistory();
+      if (response.ok) {
+        const orders = data.data?.orders || [];
+        console.log("Fetched orders:", orders);
+        setAllOrders(orders);
       } else {
-        Alert.alert("Lỗi", data.error || "Không thể hủy đơn hàng.");
+        Alert.alert("Lỗi", data.error || "Không thể lấy lịch sử đơn hàng.");
+        setAllOrders([]);
       }
     } catch (error) {
-      Alert.alert("Lỗi kết nối", `Lỗi kết nối API: ${error.message}`);
+      console.error("Error fetching order history:", error);
+      Alert.alert("Lỗi", `Không thể lấy lịch sử đơn hàng: ${error.message}`);
+      setAllOrders([]);
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchOrderHistory();
   }, [navigation]);
+
+  // Hàm hủy đơn hàng
+  const cancelOrder = useCallback(
+    async (orderId) => {
+      try {
+        const API_URL = `${NGROK_BASE_URL}/api/cancel-order`;
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({ orderId }),
+        });
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await response.text();
+          console.error("Non-JSON response:", text);
+          throw new Error(
+            "Phản hồi từ server không phải JSON: " + text.substring(0, 100)
+          );
+        }
+
+        const data = await response.json();
+        if (response.ok) {
+          Alert.alert("Thành công", "Đơn hàng đã được hủy.");
+          await fetchOrderHistory();
+        } else {
+          Alert.alert("Lỗi", data.error || "Không thể hủy đơn hàng.");
+        }
+      } catch (error) {
+        console.error("Error canceling order:", error);
+        Alert.alert("Lỗi", `Không thể hủy đơn hàng: ${error.message}`);
+      }
+    },
+    [fetchOrderHistory]
+  );
+
+  // Tải dữ liệu khi màn hình được focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      fetchOrderHistory();
+    });
+    return unsubscribe;
+  }, [navigation, fetchOrderHistory]);
 
   // Cập nhật hiển thị khi chuyển tab
   useEffect(() => {
@@ -152,15 +194,14 @@ export default function OrderHistory({ navigation, route }) {
   }, [selectedTab, allOrders]);
 
   // Load thêm đơn hàng khi kéo đến cuối
-  const loadMoreOrders = () => {
-    if (isLoading) return; // Tránh load trùng
+  const loadMoreOrders = useCallback(() => {
+    if (isLoading) return;
 
     const filteredOrders = allOrders.filter(
       (order) => order.StatusId === selectedTab
     );
     const currentLength = displayedOrders.length;
 
-    // Kiểm tra nếu đã hiển thị hết đơn hàng
     if (currentLength >= filteredOrders.length) return;
 
     setIsLoading(true);
@@ -169,8 +210,8 @@ export default function OrderHistory({ navigation, route }) {
       const nextOrders = filteredOrders.slice(0, currentLength + ordersPerLoad);
       setDisplayedOrders(nextOrders);
       setIsLoading(false);
-    }, 500); // Giảm delay xuống 500ms cho trải nghiệm mượt hơn
-  };
+    }, 500);
+  }, [isLoading, displayedOrders, allOrders, selectedTab, ordersPerLoad]);
 
   const tabs = [
     { id: 1, name: "Chờ xác nhận" },
@@ -184,7 +225,7 @@ export default function OrderHistory({ navigation, route }) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("Main", { screen: "Home" })}
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -199,9 +240,7 @@ export default function OrderHistory({ navigation, route }) {
               styles.tabButton,
               selectedTab === tab.id && styles.tabButtonActive,
             ]}
-            onPress={() => {
-              setSelectedTab(tab.id);
-            }}
+            onPress={() => setSelectedTab(tab.id)}
           >
             <Text
               style={[
@@ -225,8 +264,8 @@ export default function OrderHistory({ navigation, route }) {
           <Text style={styles.emptyText}>Không có đơn hàng nào.</Text>
         }
         contentContainerStyle={styles.orderList}
-        onEndReached={loadMoreOrders} // Load thêm khi kéo đến cuối
-        onEndReachedThreshold={0.5} // Load khi còn 50% chiều dài danh sách
+        onEndReached={loadMoreOrders}
+        onEndReachedThreshold={0.5}
         ListFooterComponent={
           isLoading ? (
             <ActivityIndicator
