@@ -15,10 +15,12 @@ import {
   coffeeLoverData,
 } from "../data/offers"; // Import từ data/offers.js
 
+// B1: Component DiscoverMore hiển thị danh sách ưu đãi, cập nhật, hoặc bài viết
 const DiscoverMore = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState("specialOffers"); // Tab mặc định: Ưu đãi đặc biệt
+  // B2: State quản lý tab đang chọn (mặc định: specialOffers)
+  const [activeTab, setActiveTab] = useState("specialOffers");
 
-  // Dữ liệu hiển thị dựa trên tab
+  // B3: Chọn dữ liệu hiển thị dựa trên tab đang chọn
   const dataToDisplay =
     activeTab === "specialOffers"
       ? specialOffersData
@@ -26,7 +28,7 @@ const DiscoverMore = ({ navigation }) => {
       ? updatesData
       : coffeeLoverData;
 
-  // Component render cho từng mục
+  // B4: Hàm render mỗi mục (ưu đãi, bài viết) với ảnh, tiêu đề, ngày
   const renderDiscoverItem = ({ item }) => (
     <TouchableOpacity
       style={styles.discoverItem}
@@ -47,9 +49,10 @@ const DiscoverMore = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  // B5: Giao diện chính của màn hình
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {/* B6: Header với nút quay lại và tiêu đề */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -61,7 +64,7 @@ const DiscoverMore = ({ navigation }) => {
         <View style={styles.placeholderRight} />
       </View>
 
-      {/* Tabs */}
+      {/* B7: Tabs để chọn loại nội dung (Ưu đãi, Cập nhật, CoffeeLover) */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
@@ -107,7 +110,7 @@ const DiscoverMore = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Danh sách với 2 cột */}
+      {/* B8: Hiển thị danh sách nội dung dạng lưới 2 cột */}
       <FlatList
         data={dataToDisplay}
         renderItem={renderDiscoverItem}
@@ -123,4 +126,5 @@ const DiscoverMore = ({ navigation }) => {
   );
 };
 
+// B9: Xuất component để sử dụng trong ứng dụng
 export default DiscoverMore;

@@ -1,3 +1,4 @@
+// Nhập các thư viện và component cần thiết
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -14,12 +15,12 @@ import {
   Modal,
   FlatList,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NGROK_BASE_URL } from "@env";
-import styles from "../styles/Checkout";
+import { Ionicons } from "@expo/vector-icons"; // Icon cho giao diện
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Lưu trữ dữ liệu cục bộ
+import { NGROK_BASE_URL } from "@env"; // URL API từ biến môi trường
+import styles from "../styles/Checkout"; // File style riêng cho màn hình Checkout
 
-// Component TextInput
+// Component TextInput tùy chỉnh để nhập thông tin
 const CustomTextInput = React.forwardRef(
   ({ value, onChangeText, ...props }, ref) => {
     return (
@@ -37,7 +38,7 @@ const CustomTextInput = React.forwardRef(
   }
 );
 
-// Component OrderItem
+// Component hiển thị mỗi sản phẩm trong đơn hàng, sử dụng memo để tối ưu hiệu suất
 const MemoizedOrderItem = React.memo(({ item }) => {
   return (
     <View style={styles.orderItem}>
@@ -53,10 +54,13 @@ const MemoizedOrderItem = React.memo(({ item }) => {
   );
 });
 
+// Component chính: Màn hình thanh toán
 export default function Checkout({ route, navigation }) {
+  // 1. Lấy dữ liệu sản phẩm từ tham số route
   const { buyItem, buyItems } = route.params || {};
   const items = buyItems || (buyItem ? [buyItem] : []);
 
+  // 2. Quản lý trạng thái thông tin người dùng
   const [userInfo, setUserInfo] = useState({
     username: "",
     fullName: "",
@@ -72,17 +76,24 @@ export default function Checkout({ route, navigation }) {
     phone: "",
     address: "",
   });
+
+  // 3. Quản lý trạng thái địa chỉ giao hàng
   const [deliveryAddresses, setDeliveryAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [selectedAddressText, setSelectedAddressText] = useState("");
   const [customAddress, setCustomAddress] = useState("");
+
+  // 4. Quản lý trạng thái mã giảm giá
   const [voucherCode, setVoucherCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [voucherId, setVoucherId] = useState(null);
+
+  // 5. Quản lý phương thức thanh toán và trạng thái tải
   const [paymentMethod, setPaymentMethod] = useState("VN Pay");
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // 6. Tạo các tham chiếu cho TextInput để điều khiển focus
   const usernameRef = useRef(null);
   const fullNameRef = useRef(null);
   const emailRef = useRef(null);
@@ -91,10 +102,12 @@ export default function Checkout({ route, navigation }) {
   const customAddressRef = useRef(null);
   const voucherRef = useRef(null);
 
+  // 7. useEffect: Lấy thông tin người dùng và địa chỉ giao hàng khi component được gắn
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         setIsLoading(true);
+        // Lấy thông tin người dùng từ AsyncStorage
         const storedUserInfo = await AsyncStorage.getItem("userInfo");
         let username = "";
         let userId = null;
@@ -105,6 +118,7 @@ export default function Checkout({ route, navigation }) {
         }
 
         if (username) {
+          // Gọi API để lấy thông tin người dùng
           const API_URL = `${NGROK_BASE_URL}/api/user?username=${username}`;
           console.log("Fetching user info from:", API_URL);
           const response = await fetch(API_URL, {
@@ -141,6 +155,7 @@ export default function Checkout({ route, navigation }) {
           });
 
           if (userId || data.id) {
+            // Gọi API để lấy danh sách địa chỉ giao hàng
             const addressUrl = `${NGROK_BASE_URL}/api/delivery-addresses?userId=${
               data.id || userId
             }`;
@@ -181,15 +196,13 @@ export default function Checkout({ route, navigation }) {
             }
           }
         } else {
-          Alert.alert("Lỗi", "Vui lòng đăng nhập lại.");
+          // Nếu không có thông tin người dùng, yêu cầu đăng nhập lại
+          Alert.alert("Vui lòng đăng nhập lại.");
           navigation.navigate("Login");
         }
       } catch (error) {
         console.error("Error fetching user info:", error.message, error.stack);
-        Alert.alert(
-          "Lỗi kết nối",
-          `Không thể lấy thông tin người dùng: ${error.message}`
-        );
+        Alert.alert(`Không thể lấy thông tin người dùng: ${error.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -197,6 +210,7 @@ export default function Checkout({ route, navigation }) {
     fetchUserInfo();
   }, [navigation]);
 
+  // 8. Hàm cập nhật thông tin người dùng
   const handleUpdateUserInfo = async () => {
     try {
       setIsLoading(true);
@@ -208,6 +222,7 @@ export default function Checkout({ route, navigation }) {
         address: tempUserInfo.address,
       };
 
+      // Gọi API để cập nhật thông tin
       const API_URL = `${NGROK_BASE_URL}/api/update-user`;
       console.log("Updating user info with:", updatedUserInfo);
       const response = await fetch(API_URL, {
@@ -233,15 +248,16 @@ export default function Checkout({ route, navigation }) {
       Alert.alert("Thành công", "Cập nhật thông tin thành công!");
     } catch (error) {
       console.error("Error updating user info:", error);
-      Alert.alert("Lỗi", `Lỗi: ${error.message}`);
+      Alert.alert(`Lỗi: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 9. Hàm thêm địa chỉ giao hàng mới
   const handleAddDeliveryAddress = async () => {
     if (!customAddress) {
-      Alert.alert("Lỗi", "Vui lòng nhập địa chỉ mới.");
+      Alert.alert("Vui lòng nhập địa chỉ mới.");
       return;
     }
 
@@ -279,15 +295,16 @@ export default function Checkout({ route, navigation }) {
       Alert.alert("Thành công", "Thêm địa chỉ giao hàng thành công!");
     } catch (error) {
       console.error("Error adding delivery address:", error.message);
-      Alert.alert("Lỗi", `Không thể thêm địa chỉ: ${error.message}`);
+      Alert.alert(`Không thể thêm địa chỉ: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 10. Hàm áp dụng mã giảm giá
   const handleApplyVoucher = async () => {
     if (!voucherCode) {
-      Alert.alert("Lỗi", "Vui lòng nhập mã voucher.");
+      Alert.alert("Vui lòng nhập mã voucher.");
       return;
     }
 
@@ -319,16 +336,17 @@ export default function Checkout({ route, navigation }) {
       } else {
         setDiscount(0);
         setVoucherId(null);
-        Alert.alert("Lỗi", data.error || "Mã voucher không hợp lệ.");
+        Alert.alert(data.error || "Mã voucher không hợp lệ.");
       }
     } catch (error) {
       console.error("Error applying voucher:", error.message);
-      Alert.alert("Lỗi", `Không thể áp dụng voucher: ${error.message}`);
+      Alert.alert(`Không thể áp dụng voucher: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 11. Hàm tính tổng tạm tính (subtotal)
   const calculateSubtotal = () => {
     return items.reduce(
       (total, item) =>
@@ -337,10 +355,12 @@ export default function Checkout({ route, navigation }) {
     );
   };
 
+  // 12. Tính phí vận chuyển và tổng cộng
   const shippingFee = 20000;
   const total =
     calculateSubtotal() + Number(shippingFee) - Number(discount || 0);
 
+  // 13. Hàm đặt hàng
   const handlePlaceOrder = async () => {
     let deliveryAddress = customAddress;
     if (selectedAddressId && !customAddress) {
@@ -348,14 +368,14 @@ export default function Checkout({ route, navigation }) {
         (addr) => addr.AddressId.toString() === selectedAddressId
       );
       if (!selected) {
-        Alert.alert("Lỗi", "Vui lòng chọn hoặc nhập địa chỉ giao hàng.");
+        Alert.alert("Vui lòng chọn hoặc nhập địa chỉ giao hàng.");
         return;
       }
       deliveryAddress = selected.Address;
     }
 
     if (!deliveryAddress) {
-      Alert.alert("Lỗi", "Vui lòng nhập hoặc chọn địa chỉ giao hàng.");
+      Alert.alert("Vui lòng nhập nebo chọn địa chỉ giao hàng.");
       return;
     }
 
@@ -377,6 +397,7 @@ export default function Checkout({ route, navigation }) {
       };
       console.log("Placing order with:", orderData);
 
+      // Gọi API để đặt hàng
       const API_URL = `${NGROK_BASE_URL}/api/place-order`;
       const response = await fetch(API_URL, {
         method: "POST",
@@ -430,12 +451,13 @@ export default function Checkout({ route, navigation }) {
       navigation.navigate("OrderConfirmation", { paymentSuccess: true });
     } catch (error) {
       console.error("Error placing order:", error);
-      Alert.alert("Lỗi", `Lỗi: ${error.message}`);
+      Alert.alert(`Lỗi: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 14. Hàm render phần đầu giao diện (header, thông tin khách hàng, địa chỉ, voucher, phương thức thanh toán)
   const renderHeader = () => {
     try {
       return (
@@ -727,6 +749,7 @@ export default function Checkout({ route, navigation }) {
     }
   };
 
+  // 15. Hàm render phần chân giao diện (tóm tắt đơn hàng, nút đặt hàng)
   const renderFooter = () => {
     try {
       return (
@@ -786,6 +809,7 @@ export default function Checkout({ route, navigation }) {
     }
   };
 
+  // 16. Render giao diện chính
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView

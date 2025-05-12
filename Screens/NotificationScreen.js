@@ -11,10 +11,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import styles from "../styles/NotificationStyle";
 
-// Ảnh mặc định (lấy từ máy)
+// B1: Ảnh mặc định - Tải ảnh từ assets để dùng khi cần.
 const defaultImage = require("../assets/a4.png");
 
-// Dữ liệu giả lập cho thông báo
+// B2: Dữ liệu thông báo - Danh sách giả lập để hiển thị.
 const notifications = [
   {
     id: "1",
@@ -23,11 +23,11 @@ const notifications = [
     time: "24/12",
     image: defaultImage,
   },
-  // Có thể thêm các thông báo khác nếu cần
+  // Thêm thông báo khác nếu cần
 ];
 
 export default function NotificationScreen({ navigation }) {
-  // Component mục thông báo (tối ưu với React.memo)
+  // B3: Component thông báo - Hiển thị từng mục, tối ưu bằng React.memo.
   const NotificationItem = React.memo(({ item }) => (
     <View style={styles.notificationCard}>
       <View style={styles.notificationRow}>
@@ -48,12 +48,13 @@ export default function NotificationScreen({ navigation }) {
     </View>
   ));
 
+  // B4: Render thông báo - Truyền item vào NotificationItem.
   const renderNotificationItem = ({ item }) => <NotificationItem item={item} />;
 
+  // B5: Giao diện chính - Hiển thị header và danh sách thông báo.
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
-      {/* Header với tiêu đề "Thông báo" và các biểu tượng */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color="#000" />
@@ -63,8 +64,6 @@ export default function NotificationScreen({ navigation }) {
           <Ionicons name="checkmark-done" size={24} color="#000" />
         </TouchableOpacity>
       </View>
-
-      {/* Danh sách thông báo */}
       <FlatList
         data={notifications}
         renderItem={renderNotificationItem}

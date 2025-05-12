@@ -14,11 +14,13 @@ import AntDesign from "react-native-vector-icons/AntDesign";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../styles/More";
 
+// B1: Component More hiển thị các tiện ích, hỗ trợ và tài khoản
 const More = ({ route }) => {
+  // B2: Hook điều hướng và state kiểm tra trạng thái đăng nhập
   const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Kiểm tra trạng thái đăng nhập từ AsyncStorage
+  // B3: Kiểm tra trạng thái đăng nhập từ AsyncStorage
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -33,6 +35,7 @@ const More = ({ route }) => {
     checkLoginStatus();
   }, []);
 
+  // B4: Component Header với tiêu đề và nút tiện ích
   const Header = () => (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Khác</Text>
@@ -55,10 +58,12 @@ const More = ({ route }) => {
     </View>
   );
 
+  // B5: Component tiêu đề của từng phần
   const SectionTitle = ({ title }) => (
     <Text style={styles.sectionTitle}>{title}</Text>
   );
 
+  // B6: Component mục tiện ích
   const TienIchItem = ({ icon, title, onPress }) => (
     <TouchableOpacity style={styles.tienIchItem} onPress={onPress}>
       {icon}
@@ -66,6 +71,7 @@ const More = ({ route }) => {
     </TouchableOpacity>
   );
 
+  // B7: Component mục menu
   const MenuItem = ({ icon, title, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={styles.menuIconContainer}>{icon}</View>
@@ -74,6 +80,7 @@ const More = ({ route }) => {
     </TouchableOpacity>
   );
 
+  // B8: Hàm điều hướng với kiểm tra đăng nhập
   const handleNavigation = (screen, params = {}) => {
     console.log(`Navigating to ${screen}, isLoggedIn: ${isLoggedIn}`);
     if (isLoggedIn) {
@@ -86,13 +93,14 @@ const More = ({ route }) => {
     }
   };
 
+  // B9: Hàm đăng xuất
   const handleLogout = async () => {
     try {
-      // Xóa AsyncStorage
+      // B10: Xóa dữ liệu AsyncStorage
       await AsyncStorage.removeItem("isLoggedIn");
       await AsyncStorage.removeItem("userInfo");
 
-      // Kiểm tra xem AsyncStorage đã xóa sạch chưa
+      // B11: Kiểm tra AsyncStorage sau khi xóa
       const loggedIn = await AsyncStorage.getItem("isLoggedIn");
       const userInfo = await AsyncStorage.getItem("userInfo");
       console.log(
@@ -102,10 +110,8 @@ const More = ({ route }) => {
         userInfo
       );
 
-      // Cập nhật state
+      // B12: Cập nhật state và reset stack
       setIsLoggedIn(false);
-
-      // Reset stack về Main để làm mới MainTabs
       navigation.reset({
         index: 0,
         routes: [{ name: "Main" }],
@@ -117,6 +123,7 @@ const More = ({ route }) => {
     }
   };
 
+  // B13: Hàm điều hướng đến màn hình đăng nhập
   const handleLogin = () => {
     navigation.navigate("Login", {
       redirectTo: "Home",
@@ -124,11 +131,13 @@ const More = ({ route }) => {
     });
   };
 
+  // B14: Giao diện chính
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       <Header />
       <ScrollView style={styles.scrollView}>
+        {/* B15: Phần tiện ích */}
         <SectionTitle title="Tiện ích" />
         <View style={styles.tienIchContainer}>
           <TienIchItem
@@ -154,6 +163,7 @@ const More = ({ route }) => {
           />
         </View>
 
+        {/* B16: Phần hỗ trợ */}
         <SectionTitle title="Hỗ trợ" />
         <View style={styles.menuContainer}>
           <MenuItem
@@ -173,6 +183,7 @@ const More = ({ route }) => {
           />
         </View>
 
+        {/* B17: Phần tài khoản */}
         <SectionTitle title="Tài khoản" />
         <View style={styles.menuContainer}>
           <MenuItem
@@ -207,4 +218,5 @@ const More = ({ route }) => {
   );
 };
 
+// B18: Xuất component
 export default More;

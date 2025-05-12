@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/OrderHistory";
 
-// Component con cho OrderItem
+// B1: Component con cho mục đơn hàng
 const MemoizedOrderItem = React.memo(({ item }) => {
   return (
     <View style={styles.orderDetailItem}>
@@ -35,7 +35,7 @@ const MemoizedOrderItem = React.memo(({ item }) => {
   );
 });
 
-// Component con cho mỗi đơn hàng
+// B2: Component con cho mỗi đơn hàng
 const MemoizedOrder = React.memo(({ order, onCancel }) => {
   return (
     <View style={styles.orderContainer}>
@@ -73,14 +73,16 @@ const MemoizedOrder = React.memo(({ order, onCancel }) => {
   );
 });
 
+// B3: Component OrderHistory hiển thị lịch sử đơn hàng
 export default function OrderHistory({ navigation }) {
-  const [allOrders, setAllOrders] = useState([]); // Tất cả đơn hàng từ server
+  // B4: Khởi tạo các state
+  const [allOrders, setAllOrders] = useState([]); // Tất cả đơn hàng
   const [displayedOrders, setDisplayedOrders] = useState([]); // Đơn hàng hiển thị
-  const [selectedTab, setSelectedTab] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedTab, setSelectedTab] = useState(1); // Tab trạng thái đơn hàng
+  const [isLoading, setIsLoading] = useState(false); // Trạng thái tải
   const ordersPerLoad = 2; // Số đơn hàng load mỗi lần
 
-  // Hàm lấy lịch sử đơn hàng
+  // B5: Hàm lấy lịch sử đơn hàng
   const fetchOrderHistory = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -138,7 +140,7 @@ export default function OrderHistory({ navigation }) {
     }
   }, [navigation]);
 
-  // Hàm hủy đơn hàng
+  // B6: Hàm hủy đơn hàng
   const cancelOrder = useCallback(
     async (orderId) => {
       try {
@@ -177,7 +179,7 @@ export default function OrderHistory({ navigation }) {
     [fetchOrderHistory]
   );
 
-  // Tải dữ liệu khi màn hình được focus
+  // B7: Tải dữ liệu khi màn hình được focus
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       fetchOrderHistory();
@@ -185,7 +187,7 @@ export default function OrderHistory({ navigation }) {
     return unsubscribe;
   }, [navigation, fetchOrderHistory]);
 
-  // Cập nhật hiển thị khi chuyển tab
+  // B8: Cập nhật hiển thị khi chuyển tab
   useEffect(() => {
     const filtered = allOrders.filter(
       (order) => order.StatusId === selectedTab
@@ -193,7 +195,7 @@ export default function OrderHistory({ navigation }) {
     setDisplayedOrders(filtered.slice(0, ordersPerLoad));
   }, [selectedTab, allOrders]);
 
-  // Load thêm đơn hàng khi kéo đến cuối
+  // B9: Load thêm đơn hàng khi kéo đến cuối
   const loadMoreOrders = useCallback(() => {
     if (isLoading) return;
 
@@ -213,6 +215,7 @@ export default function OrderHistory({ navigation }) {
     }, 500);
   }, [isLoading, displayedOrders, allOrders, selectedTab, ordersPerLoad]);
 
+  // B10: Định nghĩa các tab trạng thái đơn hàng
   const tabs = [
     { id: 1, name: "Chờ xác nhận" },
     { id: 2, name: "Chờ giao hàng" },
@@ -220,6 +223,7 @@ export default function OrderHistory({ navigation }) {
     { id: 5, name: "Đã hủy" },
   ];
 
+  // B11: Giao diện chính
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>

@@ -2,397 +2,397 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#FEF8EF",
+    flex: 1, // Chiếm toàn bộ không gian có sẵn
+    backgroundColor: "#FEF8EF", // Màu nền
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 40,
-    backgroundColor: "#FFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEEEEE",
-    marginTop: -55,
-    paddingTop: 60,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    justifyContent: "space-between", // Căn đều hai bên
+    alignItems: "center", // Căn giữa theo chiều dọc
+    paddingHorizontal: 16, // Khoảng cách ngang
+    paddingVertical: 40, // Khoảng cách dọc
+    backgroundColor: "#FFF", // Màu nền trắng
+    borderBottomWidth: 1, // Độ dày viền dưới
+    borderBottomColor: "#EEEEEE", // Màu viền dưới
+    marginTop: -55, // Lệch lên trên
+    paddingTop: 60, // Khoảng cách đỉnh
   },
   headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
   headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
   logoContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FEE5C9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
+    width: 40, // Chiều rộng
+    height: 40, // Chiều cao
+    borderRadius: 20, // Bo góc hình tròn
+    backgroundColor: "#FEE5C9", // Màu nền
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginRight: 8, // Khoảng cách phải
   },
   cartBadge: {
-    position: "relative",
+    position: "relative", // Vị trí tương đối
   },
   cartCount: {
-    position: "absolute",
-    top: -5,
-    right: -5,
-    backgroundColor: "#FF4444",
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    textAlign: "center",
-    color: "#FFF",
-    fontSize: 12,
-    fontWeight: "bold",
-    paddingHorizontal: 2,
+    position: "absolute", // Vị trí tuyệt đối
+    top: -5, // Lệch lên trên
+    right: -5, // Lệch sang phải
+    backgroundColor: "#FF4444", // Màu nền đỏ
+    borderRadius: 10, // Bo góc hình tròn
+    minWidth: 18, // Chiều rộng tối thiểu
+    height: 18, // Chiều cao
+    textAlign: "center", // Căn giữa văn bản
+    color: "#FFF", // Màu chữ trắng
+    fontSize: 12, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    paddingHorizontal: 2, // Khoảng cách ngang
   },
   greeting: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#000",
+    fontSize: 20, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    color: "#000", // Màu chữ đen
   },
   userContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 3,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginRight: 3, // Khoảng cách phải
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 40, // Chiều rộng
+    height: 40, // Chiều cao
+    borderRadius: 20, // Bo góc hình tròn
   },
   userName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
+    fontSize: 16, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    color: "#000", // Màu chữ đen
   },
   logoutButton: {
-    padding: -12,
+    padding: -12, // Khoảng cách (giá trị âm không hợp lệ)
   },
   logoutText: {
-    fontSize: 14,
-    color: "#E57905",
-    fontWeight: "bold",
+    fontSize: 14, // Kích thước chữ
+    color: "#E57905", // Màu chữ cam
+    fontWeight: "bold", // Độ đậm chữ
   },
   ticketButton: {
-    marginRight: 16,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#FEE5C9",
-    justifyContent: "center",
-    alignItems: "center",
+    marginRight: 16, // Khoảng cách phải
+    width: 36, // Chiều rộng
+    height: 36, // Chiều cao
+    borderRadius: 18, // Bo góc hình tròn
+    backgroundColor: "#FEE5C9", // Màu nền
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
   notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    width: 40, // Chiều rộng
+    height: 40, // Chiều cao
+    borderRadius: 20, // Bo góc hình tròn
+    backgroundColor: "white", // Màu nền trắng
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    shadowColor: "#000", // Màu bóng
+    shadowOffset: { width: 0, height: 2 }, // Độ lệch bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 4, // Bán kính bóng
+    elevation: 2, // Độ nổi (Android)
   },
   loginCard: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginVertical: 10,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#F5F5F5",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    backgroundColor: "white", // Màu nền trắng
+    borderRadius: 16, // Bo góc
+    marginHorizontal: 16, // Khoảng cách ngang
+    marginVertical: 10, // Khoảng cách dọc
+    overflow: "hidden", // Ẩn nội dung tràn
+    borderWidth: 1, // Độ dày viền
+    borderColor: "#F5F5F5", // Màu viền
+    elevation: 3, // Độ nổi (Android)
+    shadowColor: "#000", // Màu bóng
+    shadowOffset: { width: 0, height: 2 }, // Độ lệch bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 5, // Bán kính bóng
   },
   loginCardContent: {
-    padding: 16,
+    padding: 16, // Khoảng cách bên trong
   },
   loginTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "left",
+    fontSize: 22, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    marginBottom: 8, // Khoảng cách dưới
+    textAlign: "left", // Căn trái văn bản
   },
   loginSubtitle: {
-    fontSize: 14,
-    textAlign: "left",
-    lineHeight: 20,
-    marginBottom: 20,
-    color: "#777",
+    fontSize: 14, // Kích thước chữ
+    textAlign: "left", // Căn trái văn bản
+    lineHeight: 20, // Khoảng cách dòng
+    marginBottom: 20, // Khoảng cách dưới
+    color: "#777", // Màu chữ xám
   },
   loginButton: {
-    backgroundColor: "#E57905",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginBottom: 16,
+    backgroundColor: "#E57905", // Màu nền cam
+    borderRadius: 8, // Bo góc
+    paddingVertical: 12, // Khoảng cách dọc
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginBottom: 16, // Khoảng cách dưới
   },
   loginButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
+    color: "white", // Màu chữ trắng
+    fontWeight: "bold", // Độ đậm chữ
+    fontSize: 16, // Kích thước chữ
   },
   rewardButton: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#F6F6F6",
-    borderRadius: 8,
-    padding: 16,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    justifyContent: "space-between", // Căn đều hai bên
+    alignItems: "center", // Căn giữa theo chiều dọc
+    backgroundColor: "#F6F6F6", // Màu nền xám nhạt
+    borderRadius: 8, // Bo góc
+    padding: 16, // Khoảng cách bên trong
   },
   rewardText: {
-    fontWeight: "500",
-    fontSize: 16,
-    color: "#E57905",
+    fontWeight: "500", // Độ đậm chữ
+    fontSize: 16, // Kích thước chữ
+    color: "#E57905", // Màu chữ cam
   },
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    borderRadius: 8,
-    marginHorizontal: 15,
-    marginVertical: 10,
-    paddingHorizontal: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    backgroundColor: "#FFF", // Màu nền trắng
+    borderRadius: 8, // Bo góc
+    marginHorizontal: 15, // Khoảng cách ngang
+    marginVertical: 10, // Khoảng cách dọc
+    paddingHorizontal: 10, // Khoảng cách ngang
+    shadowColor: "#000", // Màu bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 5, // Bán kính bóng
+    elevation: 3, // Độ nổi (Android)
   },
   searchInput: {
-    flex: 1,
-    padding: 10,
-    fontSize: 16,
-    color: "#000",
-    backgroundColor: "#FFF",
+    flex: 1, // Chiếm toàn bộ không gian
+    padding: 10, // Khoảng cách bên trong
+    fontSize: 16, // Kích thước chữ
+    color: "#000", // Màu chữ đen
+    backgroundColor: "#FFF", // Màu nền trắng
   },
   searchIcon: {
-    marginRight: 10,
-    color: "#E57905",
+    marginRight: 10, // Khoảng cách phải
+    color: "#E57905", // Màu biểu tượng cam
   },
   serviceContainer: {
-    marginVertical: 10,
-    marginHorizontal: 10,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginTop: 20,
-    elevation: 3,
+    marginVertical: 10, // Khoảng cách dọc
+    marginHorizontal: 10, // Khoảng cách ngang
+    backgroundColor: "#FFFFFF", // Màu nền trắng
+    borderRadius: 10, // Bo góc
+    paddingVertical: 15, // Khoảng cách dọc
+    paddingHorizontal: 0, // Khoảng cách ngang
+    shadowColor: "#000", // Màu bóng
+    shadowOffset: { width: 0, height: 2 }, // Độ lệch bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 4, // Bán kính bóng
+    marginTop: 20, // Khoảng cách đỉnh
+    elevation: 3, // Độ nổi (Android)
   },
   serviceItem: {
-    alignItems: "center",
-    marginHorizontal: 10,
-    marginTop: 10,
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginHorizontal: 10, // Khoảng cách ngang
+    marginTop: 10, // Khoảng cách đỉnh
   },
   serviceIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#FEE5C9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
+    width: 50, // Chiều rộng
+    height: 50, // Chiều cao
+    borderRadius: 25, // Bo góc hình tròn
+    backgroundColor: "#FEE5C9", // Màu nền
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginBottom: 8, // Khoảng cách dưới
   },
   serviceText: {
-    textAlign: "center",
-    fontSize: 12,
-    color: "#000",
+    textAlign: "center", // Căn giữa văn bản
+    fontSize: 12, // Kích thước chữ
+    color: "#000", // Màu chữ đen
   },
   promotionContainer: {
-    marginHorizontal: 16,
-    marginVertical: 10,
-    alignItems: "center",
+    marginHorizontal: 16, // Khoảng cách ngang
+    marginVertical: 10, // Khoảng cách dọc
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
   promotionBanner: {
-    width: "100%",
-    height: 150,
-    borderRadius: 12,
-    backgroundColor: "transparent",
-    padding: 0,
-    overflow: "hidden",
+    width: "100%", // Chiếm toàn bộ chiều rộng
+    height: 150, // Chiều cao
+    borderRadius: 12, // Bo góc
+    backgroundColor: "transparent", // Màu nền trong suốt
+    padding: 0, // Khoảng cách
+    overflow: "hidden", // Ẩn nội dung tràn
   },
   paginationDots: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 10,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    marginTop: 10, // Khoảng cách đỉnh
   },
   paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#D3D3D3",
-    marginHorizontal: 4,
+    width: 8, // Chiều rộng
+    height: 8, // Chiều cao
+    borderRadius: 4, // Bo góc hình tròn
+    backgroundColor: "#D3D3D3", // Màu nền xám
+    marginHorizontal: 4, // Khoảng cách ngang
   },
   activeDot: {
-    backgroundColor: "#E57905",
-    width: 16,
+    backgroundColor: "#E57905", // Màu nền cam
+    width: 16, // Chiều rộng
   },
   discoverSection: {
-    marginHorizontal: 16,
-    marginBottom: 0,
+    marginHorizontal: 16, // Khoảng cách ngang
+    marginBottom: 0, // Khoảng cách dưới
   },
   sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    justifyContent: "space-between", // Căn đều hai bên
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginBottom: 12, // Khoảng cách dưới
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000",
+    fontSize: 18, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    color: "#000", // Màu chữ đen
   },
   viewMoreText: {
-    color: "#F37934",
-    fontWeight: "500",
-    fontSize: 14,
+    color: "#F37934", // Màu chữ cam
+    fontWeight: "500", // Độ đậm chữ
+    fontSize: 14, // Kích thước chữ
   },
   offerContainer: {
-    marginBottom: 15,
+    marginBottom: 15, // Khoảng cách dưới
   },
   offerCard: {
-    width: 200,
-    marginRight: 10,
-    backgroundColor: "#FFF",
-    borderRadius: 8,
-    padding: 10,
-    paddingTop: 10,
-    paddingBottom: 20,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 200, // Chiều rộng
+    marginRight: 10, // Khoảng cách phải
+    backgroundColor: "#FFF", // Màu nền trắng
+    borderRadius: 8, // Bo góc
+    padding: 10, // Khoảng cách bên trong
+    paddingTop: 10, // Khoảng cách đỉnh
+    paddingBottom: 20, // Khoảng cách dưới
+    elevation: 3, // Độ nổi (Android)
+    shadowColor: "#000", // Màu bóng
+    shadowOffset: { width: 0, height: 2 }, // Độ lệch bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 5, // Bán kính bóng
+    alignItems: "center", // Căn giữa theo chiều dọc
+    justifyContent: "center", // Căn giữa theo chiều ngang
   },
   offerSubtitle: {
-    fontSize: 12,
-    color: "#777",
-    marginTop: 5,
+    fontSize: 12, // Kích thước chữ
+    color: "#777", // Màu chữ xám
+    marginTop: 5, // Khoảng cách đỉnh
   },
   offerTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginVertical: 5,
-    color: "#000",
+    fontSize: 14, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    marginVertical: 5, // Khoảng cách dọc
+    color: "#000", // Màu chữ đen
   },
   offerDateContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
   offerDate: {
-    fontSize: 12,
-    color: "#777",
+    fontSize: 12, // Kích thước chữ
+    color: "#777", // Màu chữ xám
   },
   deliveryInfoCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    marginTop: 10,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    backgroundColor: "white", // Màu nền trắng
+    borderRadius: 12, // Bo góc
+    padding: 16, // Khoảng cách bên trong
+    shadowColor: "#000", // Màu bóng
+    shadowOffset: { width: 0, height: 2 }, // Độ lệch bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 4, // Bán kính bóng
+    elevation: 2, // Độ nổi (Android)
+    marginTop: 10, // Khoảng cách đỉnh
   },
   deliveryIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FEE5C9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
+    width: 40, // Chiều rộng
+    height: 40, // Chiều cao
+    borderRadius: 20, // Bo góc hình tròn
+    backgroundColor: "#FEE5C9", // Màu nền
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginRight: 16, // Khoảng cách phải
   },
   deliveryInfoText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#000",
+    fontSize: 16, // Kích thước chữ
+    fontWeight: "500", // Độ đậm chữ
+    color: "#000", // Màu chữ đen
   },
   deliverySubtext: {
-    fontSize: 14,
-    fontWeight: "normal",
-    color: "#777777",
+    fontSize: 14, // Kích thước chữ
+    fontWeight: "normal", // Độ đậm chữ
+    color: "#777777", // Màu chữ xám
   },
   productSection: {
-    marginHorizontal: 16,
-    marginVertical: 10,
+    marginHorizontal: 16, // Khoảng cách ngang
+    marginVertical: 10, // Khoảng cách dọc
   },
   productList: {
-    flexGrow: 1,
-    paddingBottom: 10,
+    flexGrow: 1, // Mở rộng để chứa nội dung
+    paddingBottom: 10, // Khoảng cách dưới
   },
   productCard: {
-    width: "48%",
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    width: "48%", // Chiếm 48% chiều rộng
+    backgroundColor: "#FFF", // Màu nền trắng
+    borderRadius: 10, // Bo góc
+    padding: 10, // Khoảng cách bên trong
+    marginBottom: 10, // Khoảng cách dưới
+    elevation: 3, // Độ nổi (Android)
+    shadowColor: "#000", // Màu bóng
+    shadowOffset: { width: 0, height: 2 }, // Độ lệch bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 5, // Bán kính bóng
   },
   newBadge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    backgroundColor: "#E57905",
-    borderRadius: 5,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
+    position: "absolute", // Vị trí tuyệt đối
+    top: 10, // Lệch lên trên
+    left: 10, // Lệch sang trái
+    backgroundColor: "#E57905", // Màu nền cam
+    borderRadius: 5, // Bo góc
+    paddingHorizontal: 5, // Khoảng cách ngang
+    paddingVertical: 2, // Khoảng cách dọc
   },
   newBadgeText: {
-    color: "#FFF",
-    fontSize: 10,
-    fontWeight: "bold",
+    color: "#FFF", // Màu chữ trắng
+    fontSize: 10, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
   },
   productImage: {
-    width: "100%",
-    height: 120,
-    borderRadius: 8,
+    width: "100%", // Chiếm toàn bộ chiều rộng
+    height: 120, // Chiều cao
+    borderRadius: 8, // Bo góc
   },
   productName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginVertical: 5,
-    color: "#000",
+    fontSize: 14, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    marginVertical: 5, // Khoảng cách dọc
+    color: "#000", // Màu chữ đen
   },
   productPriceContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    justifyContent: "space-between", // Căn đều hai bên
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
   productPrice: {
-    fontSize: 14,
-    color: "#000",
+    fontSize: 14, // Kích thước chữ
+    color: "#000", // Màu chữ đen
   },
   addButton: {
-    backgroundColor: "#E57905",
-    borderRadius: 15,
-    width: 30,
-    height: 30,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#E57905", // Màu nền cam
+    borderRadius: 15, // Bo góc hình tròn
+    width: 30, // Chiều rộng
+    height: 30, // Chiều cao
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
 });
 

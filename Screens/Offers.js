@@ -1,4 +1,3 @@
-// Screens/Offers.js
 import React from "react";
 import {
   View,
@@ -17,12 +16,23 @@ import {
 import styles from "../styles/OffersStyles";
 import { vouchersData, exchangeData } from "../data/offers"; // Import từ data/offers.js
 
+// B1: Offers - Màn hình ưu đãi chính.
+// - Mục đích: Hiển thị ưu đãi và đổi Bean.
+// - Cách thực hiện: Dùng ScrollView, điều hướng qua navigation.
+// - Lý do: ScrollView cho cuộn, navigation chuyển màn.
 const Offers = ({ navigation }) => {
+  // B2: Giao diện chính - Chứa toàn bộ nội dung.
+  // - Mục đích: Tổ chức layout ưu đãi.
+  // - Cách thực hiện: Dùng SafeAreaView và ScrollView.
+  // - Lý do: SafeAreaView tránh notch, ScrollView quản lý dài.
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="transparent" barStyle="light-content" />
       <ScrollView style={styles.scrollView}>
-        {/* Phần header, barcode, progress được bao trong một View với ảnh nền */}
+        {/* B3: Header với ảnh nền - Hiển thị tiêu đề và nút.
+// - Mục đích: Tạo giao diện đẹp với info.
+// - Cách thực hiện: Image làm nền, View chứa header.
+// - Lý do: Image tăng thẩm mỹ, TouchableOpacity cho tương tác. */}
         <View style={styles.backgroundImageContainer}>
           <Image
             source={require("../assets/a2.png")}
@@ -48,6 +58,10 @@ const Offers = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* B4: Barcode - Hiển thị mã vạch.
+// - Mục đích: Cung cấp mã cho người dùng.
+// - Cách thực hiện: Dùng Image và Text.
+// - Lý do: Image hiển thị mã, Text bổ sung info. */}
           <View style={styles.barcodeContainer}>
             <View style={styles.barcodePanel}>
               <Image
@@ -59,6 +73,10 @@ const Offers = ({ navigation }) => {
             </View>
           </View>
 
+          {/* B5: Thanh tiến độ - Hiển thị cấp độ và thông tin.
+// - Mục đích: Cập nhật tiến độ thăng hạng.
+// - Cách thực hiện: Dùng View và Text.
+// - Lý do: View làm thanh, Text hiển thị chi tiết. */}
           <View style={styles.progressContainer}>
             <Text style={styles.progressLabel}>MỚI</Text>
             <Text style={styles.progressLabelRight}>ĐỒNG</Text>
@@ -75,6 +93,10 @@ const Offers = ({ navigation }) => {
           </View>
         </View>
 
+        {/* B6: Menu - Hiển thị các tùy chọn điều hướng.
+// - Mục đích: Cung cấp truy cập nhanh.
+// - Cách thực hiện: Dùng TouchableOpacity và icons.
+// - Lý do: TouchableOpacity cho tương tác, icons làm đẹp. */}
         <View style={styles.menuContainer}>
           <View style={styles.menuRow}>
             <TouchableOpacity
@@ -111,6 +133,10 @@ const Offers = ({ navigation }) => {
           </View>
         </View>
 
+        {/* B7: Phần phiếu ưu đãi - Hiển thị danh sách voucher.
+// - Mục đích: Cung cấp danh sách ưu đãi.
+// - Cách thực hiện: Dùng map để render vouchersData.
+// - Lý do: Map lặp qua mảng, TouchableOpacity cho tương tác. */}
         <View style={styles.vouchersSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Phiếu ưu đãi của bạn</Text>
@@ -141,6 +167,10 @@ const Offers = ({ navigation }) => {
           ))}
         </View>
 
+        {/* B8: Phần đổi Bean - Hiển thị danh sách đổi quà.
+// - Mục đích: Cung cấp danh sách đổi Bean.
+// - Cách thực hiện: Dùng map để render exchangeData.
+// - Lý do: Map lặp qua mảng, TouchableOpacity cho tương tác. */}
         <View style={styles.exchangeSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Đổi Bean</Text>

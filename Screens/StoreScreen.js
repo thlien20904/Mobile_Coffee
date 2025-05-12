@@ -277,7 +277,10 @@ export default function StoreScreen({ navigation }) {
             resizeMode="cover"
             defaultSource={defaultImage}
             onError={(e) =>
-              console.log(`Failed to load image for ${item.name}:`, e.nativeEvent.error)
+              console.log(
+                `Failed to load image for ${item.name}:`,
+                e.nativeEvent.error
+              )
             }
           />
         </View>

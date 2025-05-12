@@ -27,7 +27,7 @@ import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/Home";
 import { offerDetails } from "../data/offers";
 
-// Dữ liệu ảnh banner từ thư mục assets
+// B1: Dữ liệu ảnh banner tĩnh từ assets
 const bannerImages = [
   require("../assets/banner1.png"),
   require("../assets/banner2.png"),
@@ -36,18 +36,20 @@ const bannerImages = [
   require("../assets/banner5.png"),
 ];
 
-// Ảnh mặc định (fallback) nếu không tải được ảnh từ URL
+// B2: Ảnh mặc định khi ảnh từ server không tải được
 const defaultImage = require("../assets/banner.png");
 
-// Lấy chiều rộng màn hình để set kích thước ảnh
+// B3: Lấy chiều rộng màn hình để tối ưu kích thước ảnh
 const { width: screenWidth } = Dimensions.get("window");
 
-// Component riêng cho banner carousel
+// B4: Component BannerCarousel hiển thị carousel quảng cáo
 const BannerCarousel = ({ navigation }) => {
+  // B5: State quản lý slide đang hiển thị
   const [activeSlide, setActiveSlide] = useState(0);
+  // B6: Ref để điều khiển FlatList
   const bannerRef = useRef(null);
 
-  // Tự động chuyển slide sau 5 giây
+  // B7: Tự động chuyển slide mỗi 3 giây
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveSlide((prev) => {
@@ -60,11 +62,12 @@ const BannerCarousel = ({ navigation }) => {
         }
         return nextSlide;
       });
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
+  // B8: Hàm render mỗi banner
   const renderBannerItem = useCallback(
     ({ item }) => (
       <TouchableOpacity
@@ -85,12 +88,14 @@ const BannerCarousel = ({ navigation }) => {
     [navigation]
   );
 
+  // B9: Hàm tối ưu layout cho banner
   const getBannerItemLayout = (data, index) => ({
     length: screenWidth - 40,
     offset: (screenWidth - 40) * index,
     index,
   });
 
+  // B10: Giao diện carousel với dots phân trang
   return (
     <View style={[styles.promotionContainer, { height: 150 }]}>
       <FlatList
@@ -127,22 +132,24 @@ const BannerCarousel = ({ navigation }) => {
   );
 };
 
+// B11: Component Home là màn hình chính của ứng dụng
 export default function Home({ navigation, route }) {
-  const [activeSlide, setActiveSlide] = useState(0); // Giữ nguyên nhưng sẽ không dùng trực tiếp
-  const [products, setProducts] = useState([]);
-  const [displayedProducts, setDisplayedProducts] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
+  // B12: State quản lý trạng thái và dữ liệu
+  const [activeSlide, setActiveSlide] = useState(0); // Không dùng trực tiếp
+  const [products, setProducts] = useState([]); // Danh sách sản phẩm từ API
+  const [displayedProducts, setDisplayedProducts] = useState([]); // Sản phẩm hiển thị
+  const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
   const [isLoggedIn, setIsLoggedIn] = useState(
     route.params?.isLoggedIn || false
-  );
-  const [userInfo, setUserInfo] = useState(route.params?.userInfo || null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const productsPerLoad = 6;
-  const bannerRef = useRef(null);
+  ); // Trạng thái đăng nhập
+  const [userInfo, setUserInfo] = useState(route.params?.userInfo || null); // Thông tin người dùng
+  const [searchQuery, setSearchQuery] = useState(""); // Từ khóa tìm kiếm
+  const [isLoading, setIsLoading] = useState(false); // Trạng thái tải thêm
+  const [cartCount, setCartCount] = useState(0); // Số lượng sản phẩm trong giỏ
+  const productsPerLoad = 6; // Số sản phẩm tải mỗi lần
+  const bannerRef = useRef(null); // Không dùng trực tiếp
 
-  // Tự động chuyển slide sau 5 giây (giữ nguyên nhưng sẽ không dùng)
+  // B13: Tự động chuyển slide (không dùng, đã thay bằng BannerCarousel)
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveSlide((prev) => {
@@ -160,19 +167,19 @@ export default function Home({ navigation, route }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Lọc sản phẩm dựa trên searchQuery
+  // B14: Lọc sản phẩm theo tìm kiếm
   const filteredProducts = useMemo(() => {
     return products.filter((product) =>
       product.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [products, searchQuery]);
 
-  // Cập nhật danh sách hiển thị ban đầu
+  // B15: Cập nhật danh sách sản phẩm hiển thị ban đầu
   useEffect(() => {
     setDisplayedProducts(filteredProducts.slice(0, productsPerLoad));
   }, [filteredProducts]);
 
-  // Cập nhật trạng thái từ route.params
+  // B16: Cập nhật trạng thái đăng nhập từ route.params
   useEffect(() => {
     if (route.params?.isLoggedIn !== undefined) {
       setIsLoggedIn(route.params.isLoggedIn);
@@ -182,7 +189,7 @@ export default function Home({ navigation, route }) {
     }
   }, [route.params?.isLoggedIn, route.params?.userInfo]);
 
-  // Kiểm tra AsyncStorage
+  // B17: Kiểm tra trạng thái đăng nhập từ AsyncStorage
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -199,7 +206,7 @@ export default function Home({ navigation, route }) {
     checkLoginStatus();
   }, []);
 
-  // Gọi API để lấy danh sách sản phẩm
+  // B18: Gọi API lấy danh sách sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
       const API_URL = `${NGROK_BASE_URL}/api/products`;
@@ -237,7 +244,7 @@ export default function Home({ navigation, route }) {
     fetchProducts();
   }, []);
 
-  // Lấy tổng số lượng sản phẩm trong giỏ hàng
+  // B19: Lấy số lượng sản phẩm trong giỏ hàng
   const fetchCartCount = async () => {
     if (!isLoggedIn || !userInfo?.username) {
       setCartCount(0);
@@ -274,12 +281,12 @@ export default function Home({ navigation, route }) {
     }
   };
 
-  // Gọi fetchCartCount khi userInfo hoặc cartUpdated thay đổi
+  // B20: Cập nhật số lượng giỏ hàng khi userInfo hoặc cartUpdated thay đổi
   useEffect(() => {
     fetchCartCount();
   }, [userInfo, route.params?.cartUpdated]);
 
-  // Hàm đăng xuất
+  // B21: Hàm đăng xuất
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("isLoggedIn");
@@ -294,7 +301,7 @@ export default function Home({ navigation, route }) {
     }
   };
 
-  // Hàm điều hướng đến trang chi tiết sản phẩm
+  // B22: Hàm điều hướng đến chi tiết sản phẩm
   const handleProductDetail = useCallback(
     (productId) => {
       navigation.navigate("ProductDetail", { productId });
@@ -302,7 +309,7 @@ export default function Home({ navigation, route }) {
     [navigation]
   );
 
-  // Hàm thêm vào giỏ hàng
+  // B23: Hàm thêm sản phẩm vào giỏ hàng
   const handleAddToCart = useCallback(
     async (product) => {
       if (!product) return;
@@ -372,7 +379,7 @@ export default function Home({ navigation, route }) {
     [isLoggedIn, userInfo, navigation]
   );
 
-  // Load thêm sản phẩm khi kéo đến cuối
+  // B24: Hàm tải thêm sản phẩm khi kéo đến cuối
   const loadMoreProducts = useCallback(() => {
     if (isLoading) return;
 
@@ -392,7 +399,7 @@ export default function Home({ navigation, route }) {
     }, 500);
   }, [isLoading, displayedProducts, filteredProducts]);
 
-  // Component render từng ảnh trong banner
+  // B25: Hàm render banner (không dùng trực tiếp, đã thay bằng BannerCarousel)
   const renderBannerItem = useCallback(
     ({ item }) => (
       <TouchableOpacity
@@ -413,7 +420,7 @@ export default function Home({ navigation, route }) {
     [navigation]
   );
 
-  // Component render từng ưu đãi đặc biệt
+  // B26: Hàm render ưu đãi đặc biệt
   const renderOfferItem = useCallback(
     ({ item, index }) => (
       <TouchableOpacity
@@ -453,7 +460,7 @@ export default function Home({ navigation, route }) {
     [navigation]
   );
 
-  // Component render từng sản phẩm
+  // B27: Hàm render sản phẩm
   const renderProductItem = useCallback(
     ({ item }) => (
       <TouchableOpacity
@@ -493,31 +500,32 @@ export default function Home({ navigation, route }) {
     [handleProductDetail, handleAddToCart]
   );
 
-  // Hàm tối ưu layout cho banner
+  // B28: Hàm tối ưu layout cho banner (không dùng trực tiếp)
   const getBannerItemLayout = (data, index) => ({
     length: screenWidth - 40,
     offset: (screenWidth - 40) * index,
     index,
   });
 
-  // Hàm tối ưu layout cho offer
+  // B29: Hàm tối ưu layout cho ưu đãi
   const getOfferItemLayout = (data, index) => ({
     length: 200,
     offset: 200 * index,
     index,
   });
 
-  // Hàm tối ưu layout cho product
+  // B30: Hàm tối ưu layout cho sản phẩm
   const getProductItemLayout = (data, index) => ({
     length: 180,
     offset: 180 * Math.floor(index / 2),
     index,
   });
 
-  // Header của FlatList
+  // B31: Hàm render header của FlatList
   const renderHeader = useCallback(
     () => (
       <>
+        {/* B32: Hiển thị thông báo lỗi nếu có */}
         {errorMessage ? (
           <View style={{ padding: 10, backgroundColor: "#ffcccc", margin: 10 }}>
             <Text style={{ color: "red", textAlign: "center" }}>
@@ -526,6 +534,7 @@ export default function Home({ navigation, route }) {
           </View>
         ) : null}
 
+        {/* B33: Header cho người đã đăng nhập */}
         {isLoggedIn ? (
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -574,6 +583,7 @@ export default function Home({ navigation, route }) {
             </View>
           </View>
         ) : (
+          /* B34: Header cho người chưa đăng nhập */
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <TouchableOpacity
@@ -599,6 +609,7 @@ export default function Home({ navigation, route }) {
           </View>
         )}
 
+        {/* B35: Card khuyến khích đăng nhập nếu chưa đăng nhập */}
         {!isLoggedIn && (
           <View style={styles.loginCard}>
             <View style={styles.loginCardContent}>
@@ -621,6 +632,7 @@ export default function Home({ navigation, route }) {
           </View>
         )}
 
+        {/* B36: Danh sách dịch vụ */}
         <View style={styles.serviceContainer}>
           <FlatList
             horizontal
@@ -677,9 +689,10 @@ export default function Home({ navigation, route }) {
           />
         </View>
 
-        {/* Thay phần banner bằng component BannerCarousel */}
+        {/* B37: Sử dụng BannerCarousel */}
         <BannerCarousel navigation={navigation} />
 
+        {/* B38: Phần khám phá thêm */}
         <View style={styles.discoverSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Khám phá thêm ✨</Text>
@@ -717,6 +730,7 @@ export default function Home({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
+        {/* B39: Ô tìm kiếm sản phẩm */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -733,14 +747,16 @@ export default function Home({ navigation, route }) {
           />
         </View>
 
+        {/* B40: Tiêu đề danh sách sản phẩm */}
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>Sản phẩm</Text>
         </View>
       </>
     ),
-    [isLoggedIn, userInfo, errorMessage, cartCount, navigation, renderOfferItem] // Loại bỏ activeSlide khỏi dependency
+    [isLoggedIn, userInfo, errorMessage, cartCount, navigation, renderOfferItem]
   );
 
+  // B41: Giao diện chính với FlatList sản phẩm
   return (
     <SafeAreaView style={styles.container}>
       <FlatList

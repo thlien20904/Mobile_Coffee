@@ -1,4 +1,3 @@
-// Screens/ExchangeBean.js
 import React from "react";
 import {
   View,
@@ -12,8 +11,9 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"; // Thêm import
 import styles from "../styles/ExchangeBeanStyles";
 
+// B1: Component ExchangeBean hiển thị danh sách ưu đãi đổi bằng "bean"
 const ExchangeBean = ({ navigation }) => {
-  // Dữ liệu cho phần "TỪ SULI COFFEE"
+  // B2: Dữ liệu tĩnh cho phần "TỪ SULI COFFEE"
   const coffeeHouseItems = [
     {
       id: "1",
@@ -27,7 +27,6 @@ const ExchangeBean = ({ navigation }) => {
       title: "Mua 1 A-Mê quất tặng 1 A-Mê bất kìkì",
       bean: 400,
     },
-
     {
       id: "3",
       image: require("../assets/db3.png"),
@@ -54,7 +53,7 @@ const ExchangeBean = ({ navigation }) => {
     },
   ];
 
-  // Dữ liệu cho phần "TỪ SIGNATURE BY THE COFFEE..."
+  // B3: Dữ liệu tĩnh cho phần "TỪ SIGNATURE BY THE COFFEE..."
   const signatureItems = [
     {
       id: "5",
@@ -88,7 +87,7 @@ const ExchangeBean = ({ navigation }) => {
     },
   ];
 
-  // Dữ liệu cho phần "TỪ ĐỐI TÁC"
+  // B4: Dữ liệu tĩnh cho phần "TỪ ĐỐI TÁC"
   const partnerItems = [
     {
       id: "9",
@@ -116,7 +115,7 @@ const ExchangeBean = ({ navigation }) => {
     },
   ];
 
-  // Component render từng mục đổi bean
+  // B5: Hàm render mỗi mục ưu đãi với ảnh, tiêu đề, số bean
   const renderExchangeItem = ({ item }) => {
     return (
       <TouchableOpacity key={item.id} style={styles.item}>
@@ -134,11 +133,12 @@ const ExchangeBean = ({ navigation }) => {
     );
   };
 
+  // B6: Giao diện chính của màn hình
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
 
-      {/* Header */}
+      {/* B7: Header với nút quay lại và tiêu đề */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -151,6 +151,7 @@ const ExchangeBean = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.scrollView}>
+        {/* B8: Hiển thị số bean hiện tại của người dùng */}
         <View style={styles.beanInfo}>
           <Image
             source={require("../assets/bean.png")}
@@ -161,7 +162,7 @@ const ExchangeBean = ({ navigation }) => {
             <Text style={styles.beanCount}>0 Bean</Text>
           </View>
         </View>
-        {/* Phần "TỪ SULI COFFEE" */}
+        {/* B9: Phần "TỪ SULI COFFEE" */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>TỪ SULI COFFEE</Text>
@@ -179,7 +180,7 @@ const ExchangeBean = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        {/* Phần "TỪ SIGNATURE BY SULI COFFEE..." */}
+        {/* B10: Phần "TỪ SIGNATURE BY SULI COFFEE..." */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
@@ -199,7 +200,7 @@ const ExchangeBean = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        {/* Phần "TỪ ĐỐI TÁC" */}
+        {/* B11: Phần "TỪ ĐỐI TÁC" */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>TỪ ĐỐI TÁC</Text>
@@ -221,4 +222,5 @@ const ExchangeBean = ({ navigation }) => {
   );
 };
 
+// B12: Xuất component để sử dụng trong ứng dụng
 export default ExchangeBean;

@@ -1,15 +1,16 @@
 const express = require("express");
 const { connectDB, sql } = require("../db");
-const cors = require("cors");
-const nodemailer = require("nodemailer");
-const bcrypt = require("bcrypt");
-const crypto = require("crypto");
+const cors = require("cors"); //quản lý yêu cầu từ các domain khác nhau
+const nodemailer = require("nodemailer"); //gửi email từ ứng dụng node.js
+const bcrypt = require("bcrypt"); // mã hóa mật khẩu
+const crypto = require("crypto"); //tạo mã xác thực or mã hóa thông tin
 
-const router = express.Router();
+const router = express.Router(); //tạo một router để xử lý các yêu cầu HTTP
 
-router.use(cors());
+router.use(cors()); //Điều này sẽ cho phép các yêu cầu từ các nguồn khác nhau (domain khác) được phép truy cập vào API mà không bị hạn chế bởi trình duyệt.
 
 const transporter = nodemailer.createTransport({
+  //Transporter là một đối tượng chịu trách nhiệm kết nối và gửi email qua một dịch vụ SMTP (Simple Mail Transfer Protocol).
   service: "gmail",
   auth: {
     user: "thuylien2k4@gmail.com",
@@ -20,8 +21,9 @@ const transporter = nodemailer.createTransport({
 const otps = {};
 
 // API gửi OTP để đặt lại mật khẩu
+//req: Chứa thông tin request, bao gồm các tham số như body, headers.res: Chứa các phương thức để response cho client.
 router.post("/forgot-password", async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.body; //Lấy giá trị email từ dữ liệu gửi trong phần body của yêu cầu.
 
   if (!email) {
     return res.status(400).json({ error: "Vui lòng cung cấp email." });
@@ -48,7 +50,7 @@ router.post("/forgot-password", async (req, res) => {
       text: `Mã OTP của bạn là: ${otp}. Mã này có hiệu lực trong 5 phút.`,
     };
 
-    await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions); // Gửi email thông qua transporter đã được cấu hình trước đó (với Gmail).
     res.status(200).json({
       message:
         "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư hoặc thư rác.",
@@ -61,7 +63,7 @@ router.post("/forgot-password", async (req, res) => {
 
 // API xác minh mã OTP
 router.post("/verify-otp", async (req, res) => {
-  const { email, otp } = req.body;
+  const { email, otp } = req.body; //Bước 1: Lấy dữ liệu và kiểm tra đầu vào
 
   if (!email || !otp) {
     return res
@@ -70,26 +72,27 @@ router.post("/verify-otp", async (req, res) => {
   }
 
   try {
-    const storedOtp = otps[email];
+    const storedOtp = otps[email]; //Bước 2: Kiểm tra mã OTP đã lưu
 
     if (!storedOtp) {
       return res
         .status(400)
         .json({ error: "Mã OTP không tồn tại hoặc đã hết hạn." });
     }
-
+    // Bước 3: Kiểm tra thời hạn mã OTP
     if (storedOtp.expires < Date.now()) {
       delete otps[email];
       return res.status(400).json({ error: "Mã OTP đã hết hạn." });
     }
-
+    // Bước 4: So sánh mã OTP người dùng gửi với mã đã lưu
     if (storedOtp.code !== otp) {
       return res.status(400).json({ error: "Mã OTP không hợp lệ." });
     }
-
+    //Bước 5: OTP hợp lệ – xác minh thành công
     delete otps[email];
     res.status(200).json({ message: "Xác minh OTP thành công." });
   } catch (err) {
+    // Bước 6: Bắt lỗi nội bộ
     console.error("Lỗi trong verify-otp:", err);
     res.status(500).json({ error: "Lỗi khi xác minh OTP." });
   }
@@ -97,25 +100,25 @@ router.post("/verify-otp", async (req, res) => {
 
 // API đặt lại mật khẩu
 router.post("/reset-password", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body; //Bước 1: Kiểm tra dữ liệu đầu vào
 
   if (!email || !password) {
     return res
       .status(400)
       .json({ error: "Vui lòng cung cấp email và mật khẩu mới." });
   }
-
+  //Bước 2: Kiểm tra định dạng email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ error: "Email không đúng định dạng." });
   }
-
+  //Bước 3: Kiểm tra độ mạnh của mật khẩu
   if (password.length < 6) {
     return res.status(400).json({ error: "Mật khẩu phải có ít nhất 6 ký tự." });
   }
 
   try {
-    const pool = await connectDB();
+    const pool = await connectDB(); // Bước 4: Kiểm tra email có tồn tại trong CSDL không
     const userResult = await pool
       .request()
       .input("email", sql.NVarChar, email)
@@ -124,7 +127,7 @@ router.post("/reset-password", async (req, res) => {
     if (userResult.recordset.length === 0) {
       return res.status(404).json({ error: "Email không tồn tại." });
     }
-
+    // Bước 5: Băm (mã hóa) mật khẩu và cập nhật
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
@@ -135,9 +138,10 @@ router.post("/reset-password", async (req, res) => {
       .query(
         "UPDATE Users SET PasswordHash = @passwordHash WHERE Email = @email"
       );
-
+    // Bước 6: Trả kết quả thành công
     res.status(200).json({ message: "Cập nhật mật khẩu thành công." });
   } catch (err) {
+    // Bước 7: Bắt lỗi hệ thống
     console.error("Lỗi trong reset-password:", err);
     res.status(500).json({ error: "Lỗi khi cập nhật mật khẩu." });
   }
@@ -145,19 +149,19 @@ router.post("/reset-password", async (req, res) => {
 
 // API kiểm tra tên người dùng có tồn tại
 router.post("/check-username", async (req, res) => {
-  const { username } = req.body;
+  const { username } = req.body; //Bước 1: Nhận và kiểm tra đầu vào
 
   if (!username) {
     return res.status(400).json({ error: "Vui lòng cung cấp tên người dùng." });
   }
 
   try {
-    const pool = await connectDB();
+    const pool = await connectDB(); //Bước 2: Kiểm tra tên người dùng trong cơ sở dữ liệu
     const result = await pool
       .request()
       .input("username", sql.NVarChar, username)
       .query("SELECT * FROM Users WHERE Username = @username");
-
+    // Bước 3: Trả kết quả
     if (result.recordset.length > 0) {
       res
         .status(400)
@@ -166,6 +170,7 @@ router.post("/check-username", async (req, res) => {
       res.status(200).json({ exists: false });
     }
   } catch (err) {
+    // Bước 4: Xử lý lỗi server
     console.error("Lỗi khi kiểm tra username:", err);
     res.status(500).json({ error: "Lỗi server." });
   }
@@ -199,8 +204,8 @@ router.post("/check-email", async (req, res) => {
 
 // API đăng ký người dùng
 router.post("/register", async (req, res) => {
-  const { username, email, password, fullName, phone, address } = req.body;
-
+  const { username, email, password, fullName, phone, address } = req.body; //Bước 1: Nhận dữ liệu đầu vào
+  // Bước 2: Kiểm tra dữ liệu bắt buộc
   if (!username || !email || !password) {
     return res
       .status(400)
@@ -208,7 +213,7 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    const pool = await connectDB();
+    const pool = await connectDB(); //Bước 3: Kiểm tra username/email đã tồn tại chưa
 
     const existingUser = await pool
       .request()
@@ -217,7 +222,7 @@ router.post("/register", async (req, res) => {
       .query(
         "SELECT * FROM Users WHERE Username = @username OR Email = @email"
       );
-
+    //→ Xử lý trường hợp đã tồn tại
     if (existingUser.recordset.length > 0) {
       const existingUsername = existingUser.recordset.some(
         (user) => user.Username === username
@@ -241,7 +246,7 @@ router.post("/register", async (req, res) => {
 
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
+    //Bước 5: Thêm người dùng vào cơ sở dữ liệu
     await pool
       .request()
       .input("username", sql.NVarChar, username)
@@ -263,7 +268,7 @@ router.post("/register", async (req, res) => {
 
 // API đăng nhập người dùng
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body; //Bước 1: Nhận và kiểm tra dữ liệu đầu vào
 
   if (!username || !password) {
     return res
@@ -277,17 +282,17 @@ router.post("/login", async (req, res) => {
   try {
     const pool = await connectDB();
     console.log("Kết nối cơ sở dữ liệu thành công");
-
+    //Bước 2: Tìm người dùng trong CSDL
     const result = await pool
       .request()
       .input("username", sql.NVarChar, username)
       .query("SELECT * FROM Users WHERE Username = @username");
-
+    //→ Nếu không tìm thấy
     if (result.recordset.length === 0) {
       console.log("User not found:", username);
       return res.status(400).json({ error: "Tên người dùng không tồn tại." });
     }
-
+    // Bước 3: Kiểm tra mật khẩu
     const user = result.recordset[0];
     console.log("User found:", user.FullName);
 
@@ -298,7 +303,7 @@ router.post("/login", async (req, res) => {
       console.log("Mật khẩu không tồn tại trong cơ sở dữ liệu:", username);
       return res.status(400).json({ error: "Mật khẩu không tồn tại." });
     }
-
+    // Trường hợp mật khẩu chưa được băm:
     if (storedPassword === password) {
       passwordMatch = true;
       const saltRounds = 10;
@@ -313,6 +318,7 @@ router.post("/login", async (req, res) => {
         );
       console.log(`Mật khẩu của ${username} đã được cập nhật thành công.`);
     } else {
+      //Trường hợp đã băm:
       passwordMatch = await bcrypt.compare(password, storedPassword);
     }
 
@@ -320,7 +326,7 @@ router.post("/login", async (req, res) => {
       console.log("Password incorrect for user:", username);
       return res.status(400).json({ error: "Mật khẩu không đúng." });
     }
-
+    // Bước 4: Trả thông tin người dùng khi đăng nhập thành công
     res.status(200).json({
       message: "Đăng nhập thành công!",
       user: {

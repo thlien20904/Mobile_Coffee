@@ -14,22 +14,24 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NGROK_BASE_URL } from "@env";
 import styles from "../styles/OrderStyle";
 
-// Ảnh mặc định (fallback) nếu không tải được ảnh từ URL
+// B1: Ảnh mặc định nếu không tải được ảnh từ URL
 const defaultImage = require("../assets/banner.png");
 
+// B2: Component Order hiển thị danh sách sản phẩm
 export default function Order({ navigation }) {
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [displayedProducts, setDisplayedProducts] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const productsPerLoad = 5;
+  // B3: Khởi tạo các state
+  const [categories, setCategories] = useState([]); // Danh sách danh mục
+  const [selectedCategory, setSelectedCategory] = useState(null); // Danh mục được chọn
+  const [products, setProducts] = useState([]); // Tất cả sản phẩm
+  const [filteredProducts, setFilteredProducts] = useState([]); // Sản phẩm đã lọc
+  const [displayedProducts, setDisplayedProducts] = useState([]); // Sản phẩm hiển thị
+  const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
+  const [searchQuery, setSearchQuery] = useState(""); // Từ khóa tìm kiếm
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái đăng nhập
+  const [isLoading, setIsLoading] = useState(false); // Trạng thái tải
+  const productsPerLoad = 5; // Số sản phẩm load mỗi lần
 
-  // Kiểm tra trạng thái đăng nhập
+  // B4: Kiểm tra trạng thái đăng nhập từ AsyncStorage
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -42,7 +44,7 @@ export default function Order({ navigation }) {
     checkLoginStatus();
   }, []);
 
-  // Gọi API để lấy danh sách danh mục
+  // B5: Gọi API lấy danh sách danh mục
   useEffect(() => {
     const fetchCategories = async () => {
       const API_URL = `${NGROK_BASE_URL}/api/categories`;
@@ -87,7 +89,7 @@ export default function Order({ navigation }) {
     fetchCategories();
   }, []);
 
-  // Gọi API để lấy danh sách sản phẩm
+  // B6: Gọi API lấy danh sách sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
       const API_URL = `${NGROK_BASE_URL}/api/products`;
@@ -131,7 +133,7 @@ export default function Order({ navigation }) {
     fetchProducts();
   }, []);
 
-  // Lọc sản phẩm theo danh mục và tìm kiếm
+  // B7: Lọc sản phẩm theo danh mục và tìm kiếm
   useEffect(() => {
     let filtered = products;
 
@@ -151,7 +153,7 @@ export default function Order({ navigation }) {
     setDisplayedProducts(filtered.slice(0, productsPerLoad));
   }, [selectedCategory, products, searchQuery]);
 
-  // Load thêm sản phẩm khi kéo đến cuối
+  // B8: Load thêm sản phẩm khi kéo đến cuối
   const loadMoreProducts = () => {
     if (isLoading) return;
 
@@ -169,12 +171,12 @@ export default function Order({ navigation }) {
     }, 500);
   };
 
-  // Hàm điều hướng đến ProductDetail
+  // B9: Điều hướng đến chi tiết sản phẩm
   const handleProductDetail = (productId) => {
     navigation.navigate("ProductDetail", { productId });
   };
 
-  // Hàm thêm vào giỏ hàng
+  // B10: Thêm sản phẩm vào giỏ hàng
   const handleAddToCart = (product) => {
     if (!product) return;
 
@@ -209,12 +211,12 @@ export default function Order({ navigation }) {
     }
   };
 
-  // Tìm tên danh mục được chọn
+  // B11: Tìm tên danh mục được chọn
   const selectedCategoryName = categories.find(
     (category) => category.id === selectedCategory
   )?.name;
 
-  // Component con cho mỗi sản phẩm
+  // B12: Component con cho mỗi sản phẩm
   const ProductItem = React.memo(({ product }) => (
     <TouchableOpacity
       style={styles.productCard}
@@ -254,7 +256,7 @@ export default function Order({ navigation }) {
     </TouchableOpacity>
   ));
 
-  // Header của FlatList
+  // B13: Header của FlatList
   const renderHeader = () => (
     <>
       {errorMessage ? (
@@ -323,6 +325,7 @@ export default function Order({ navigation }) {
     </>
   );
 
+  // B14: Giao diện chính
   return (
     <SafeAreaView style={styles.container}>
       <FlatList

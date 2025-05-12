@@ -1,4 +1,3 @@
-// Screens/Membership.js
 import React, { useState } from "react";
 import {
   View,
@@ -11,10 +10,12 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import styles from "../styles/MembershipStyles";
 
+// B1: Component Membership hiển thị thông tin hạng thành viên và ưu đãi
 const Membership = ({ navigation }) => {
+  // B2: State quản lý tab đang chọn
   const [activeTab, setActiveTab] = useState("moi");
 
-  // Các tab hạng thành viên
+  // B3: Định nghĩa các tab hạng thành viên
   const tabs = [
     { id: "moi", name: "Mới" },
     { id: "dong", name: "Đồng" },
@@ -23,7 +24,7 @@ const Membership = ({ navigation }) => {
     { id: "kimcuong", name: "Kim Cương" },
   ];
 
-  // Dữ liệu ưu đãi cho từng tab
+  // B4: Dữ liệu ưu đãi cho từng hạng thành viên
   const membershipBenefits = {
     moi: [],
     dong: [
@@ -126,16 +127,18 @@ const Membership = ({ navigation }) => {
     ],
   };
 
-  // Lấy danh sách ưu đãi dựa vào tab đang chọn
+  // B5: Hàm lấy danh sách ưu đãi theo tab đang chọn
   const getBenefitsByTab = () => {
     return membershipBenefits[activeTab] || [];
   };
 
+  // B6: Giao diện chính của màn hình
   return (
     <SafeAreaView style={styles.container}>
+      {/* B7: Thiết lập StatusBar */}
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
 
-      {/* Header */}
+      {/* B8: Header với nút quay lại */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -147,7 +150,7 @@ const Membership = ({ navigation }) => {
         <View style={styles.placeholderRight} />
       </View>
 
-      {/* Membership Info */}
+      {/* B9: Thông tin hạng thành viên */}
       <View style={styles.membershipInfo}>
         <View style={styles.membershipCard}>
           <View style={styles.levelAndBeanContainer}>
@@ -177,7 +180,7 @@ const Membership = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Tab Bar */}
+      {/* B10: Thanh tab chuyển đổi hạng thành viên */}
       <View style={styles.tabContainer}>
         {tabs.map((tab) => (
           <TouchableOpacity
@@ -203,7 +206,7 @@ const Membership = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Benefits List */}
+      {/* B11: Danh sách ưu đãi theo tab */}
       <ScrollView style={styles.scrollView}>
         {getBenefitsByTab().map((benefit) => (
           <View key={benefit.id} style={styles.benefitItem}>
@@ -221,4 +224,5 @@ const Membership = ({ navigation }) => {
   );
 };
 
+// B12: Xuất component
 export default Membership;

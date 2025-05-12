@@ -10,21 +10,29 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NGROK_BASE_URL } from "@env";
 
+// B1: Component Forget1 cho phép nhập mã OTP để xác nhận
 const Forget1 = ({ route }) => {
+  // B2: State quản lý mã OTP nhập vào
   const [otp, setOtp] = useState("");
+  // B3: State lưu thông báo lỗi
   const [errorMessage, setErrorMessage] = useState("");
+  // B4: Hook useNavigation để điều hướng
   const navigation = useNavigation();
-  const { email } = route.params || {}; // Chỉ lấy email từ params
+  // B5: Lấy email từ route.params
+  const { email } = route.params || {};
 
+  // B6: Hàm xử lý xác nhận OTP
   const handleConfirmOtp = async () => {
-    setErrorMessage("");
+    setErrorMessage(""); // Xóa lỗi cũ
 
+    // B7: Kiểm tra OTP trống
     if (otp.trim() === "") {
       setErrorMessage("Vui lòng nhập mã OTP.");
       return;
     }
 
     try {
+      // B8: Gửi yêu cầu POST đến API verify-otp
       const response = await fetch(`${NGROK_BASE_URL}/api/verify-otp`, {
         method: "POST",
         headers: {
@@ -35,19 +43,22 @@ const Forget1 = ({ route }) => {
 
       const data = await response.json();
 
+      // B9: Xử lý phản hồi từ server
       if (response.ok) {
         alert("Xác nhận OTP thành công.");
-        navigation.navigate("Forget2", { email });
+        navigation.navigate("Forget2", { email }); // Chuyển đến màn hình cập nhật mật khẩu
       } else {
         setErrorMessage(data.error || "Mã OTP không hợp lệ.");
       }
     } catch (error) {
-      setErrorMessage(`Lỗi kết nối: ${error.message}`);
+      setErrorMessage(`Lỗi kết nối: ${error.message}`); // Lỗi mạng
     }
   };
 
+  // B10: Giao diện chính
   return (
     <View style={styles.container}>
+      {/* B11: Nút quay lại */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -55,11 +66,13 @@ const Forget1 = ({ route }) => {
         <Ionicons name="arrow-back" size={40} color="#333" />
       </TouchableOpacity>
 
+      {/* B12: Tiêu đề và hướng dẫn */}
       <Text style={styles.title}>Xác Nhận OTP</Text>
       <Text style={styles.subtitle}>
         Nhập mã OTP đã được gửi đến email {email}.
       </Text>
 
+      {/* B13: Ô nhập OTP */}
       <View style={styles.inputContainer}>
         <Ionicons name="key" size={20} color="#777" style={styles.icon} />
         <TextInput
@@ -72,10 +85,12 @@ const Forget1 = ({ route }) => {
         />
       </View>
 
+      {/* B14: Hiển thị lỗi nếu có */}
       {errorMessage ? (
         <Text style={styles.errorText}>{errorMessage}</Text>
       ) : null}
 
+      {/* B15: Nút xác nhận OTP */}
       <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmOtp}>
         <Text style={styles.confirmText}>Xác Nhận</Text>
       </TouchableOpacity>
@@ -83,6 +98,7 @@ const Forget1 = ({ route }) => {
   );
 };
 
+// B16: Định nghĩa styles cho giao diện
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -143,4 +159,5 @@ const styles = StyleSheet.create({
   },
 });
 
+// B17: Xuất component
 export default Forget1;

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NavigationContainer } from "@react-navigation/native"; // quản lý điều hướng
+import { createStackNavigator } from "@react-navigation/stack"; // tạo stack cho phép điều hướng giữa các màn hình trồng lên nhau
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"; // cho phép các tab dưới đấy màn hình để chuyển đổi giữa các màn hình
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // lưu trữ dữ liệu không đồng bộ
 import Login from "./Screens/Login";
 import Register from "./Screens/Register";
 import Forget from "./Screens/Forget";
@@ -36,12 +36,12 @@ import NotificationScreen from "./Screens/NotificationScreen";
 import DiscoverMore from "./Screens/DiscoverMore";
 import PromotionDetail from "./Screens/PromotionDetail";
 
-const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator(); // Tạo một instance của stack navigator, nơi các màn hình sẽ được đẩy lên và đẩy xuống (push/pop).
+const Tab = createBottomTabNavigator(); // Tạo một instance của bottom tab navigator, cho phép chuyển đổi giữa các tab màn hình.
 
 function MainTabs({ route }) {
   const { isLoggedIn, userInfo } = route.params || {};
-
+  // Lấy trạng thái đăng nhập và thông tin người dùng từ tham số của route.
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -125,14 +125,14 @@ export default function App() {
         const user = await AsyncStorage.getItem("userInfo");
         console.log("isLoggedIn from AsyncStorage:", loggedIn);
         console.log("userInfo from AsyncStorage:", user);
-        setIsLoggedIn(loggedIn === "true");
-        setUserInfo(user ? JSON.parse(user) : null);
+        setIsLoggedIn(loggedIn === "true"); // Đặt trạng thái đăng nhập dựa trên giá trị lưu trữ.
+        setUserInfo(user ? JSON.parse(user) : null); // Nếu có thông tin người dùng, parse và lưu lại.
       } catch (error) {
         console.error("Error checking login status:", error);
-        setIsLoggedIn(false);
+        setIsLoggedIn(false); // Nếu có lỗi, mặc định là chưa đăng nhập.
       }
     };
-    checkLoginStatus();
+    checkLoginStatus(); // Gọi hàm kiểm tra trạng thái đăng nhập khi component được mount.
   }, []);
 
   if (isLoggedIn === null) {
@@ -144,11 +144,13 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
           <>
+            {/* Nếu đã đăng nhập, hiển thị các màn hình chính */}
             <Stack.Screen
               name="Main"
               component={MainTabs}
               initialParams={{ isLoggedIn, userInfo }}
             />
+            {/* Các màn hình khác khi đã đăng nhập */}
             <Stack.Screen name="ProductDetail" component={ProductDetail} />
             <Stack.Screen name="Cart" component={Cart} />
             <Stack.Screen name="Checkout" component={Checkout} />
@@ -180,6 +182,7 @@ export default function App() {
           </>
         ) : (
           <>
+            {/* Nếu chưa đăng nhập, hiển thị các màn hình đăng nhập */}
             <Stack.Screen
               name="Main"
               component={MainTabs}

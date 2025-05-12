@@ -2,134 +2,134 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#FEF8EF", // Giữ màu nền be nhạt
+    flex: 1, // Chiếm toàn bộ không gian có sẵn
+    backgroundColor: "#FEF8EF", // Màu nền be nhạt
   },
   backButton: {
-    marginTop: 20, // Dịch lên trên (giảm từ 40 xuống 20)
-    marginLeft: 16,
-    marginBottom: 10,
-    padding: -20, // Tăng vùng chạm
+    marginTop: 20, // Khoảng cách đỉnh (giảm từ 40 xuống 20)
+    marginLeft: 16, // Khoảng cách trái
+    marginBottom: 10, // Khoảng cách dưới
+    padding: -20, // Khoảng cách (giá trị âm không hợp lệ, tăng vùng chạm)
   },
   productImage: {
-    width: "90%", // Giảm chiều rộng để tạo khoảng cách hai bên
-    height: 360, // Giảm chiều cao từ 300 xuống 200
+    width: "90%", // Chiếm 90% chiều rộng để tạo khoảng cách hai bên
+    height: 360, // Chiều cao ảnh
     borderRadius: 20, // Bo góc lớn hơn để trông mềm mại
     alignSelf: "center", // Căn giữa ảnh
-    marginVertical: 10, // Thêm khoảng cách trên dưới
+    marginVertical: 10, // Khoảng cách trên dưới
   },
   productInfo: {
-    paddingHorizontal: 16,
-    paddingVertical: 10, // Giảm padding dọc để gọn hơn
+    paddingHorizontal: 16, // Khoảng cách ngang
+    paddingVertical: 10, // Khoảng cách dọc (giảm để gọn hơn)
   },
   productName: {
-    fontSize: 26, // Tăng kích thước chữ để nổi bật
-    fontWeight: "bold",
-    color: "#2A2A2A", // Màu đen đậm hơn để tăng độ tương phản
-    marginBottom: 8,
+    fontSize: 26, // Kích thước chữ lớn để nổi bật
+    fontWeight: "bold", // Độ đậm chữ
+    color: "#2A2A2A", // Màu đen đậm để tăng độ tương phản
+    marginBottom: 8, // Khoảng cách dưới
   },
   productPrice: {
-    fontSize: 22, // Tăng kích thước chữ
-    fontWeight: "600",
-    color: "#E57905", // Giữ màu cam
-    marginBottom: 8,
+    fontSize: 22, // Kích thước chữ
+    fontWeight: "600", // Độ đậm chữ
+    color: "#E57905", // Màu cam
+    marginBottom: 8, // Khoảng cách dưới
   },
   productDescription: {
-    fontSize: 16,
-    color: "#666", // Màu xám đậm hơn một chút để dễ đọc
-    lineHeight: 22, // Tăng khoảng cách dòng để dễ đọc
+    fontSize: 16, // Kích thước chữ
+    color: "#666", // Màu xám đậm để dễ đọc
+    lineHeight: 22, // Khoảng cách dòng để dễ đọc
   },
   quantityContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    marginVertical: 15, // Tăng khoảng cách trên dưới
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    paddingHorizontal: 16, // Khoảng cách ngang
+    marginVertical: 15, // Khoảng cách trên dưới
     justifyContent: "space-between", // Căn đều hai bên
   },
   quantityLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2A2A2A", // Màu đen đậm hơn
+    fontSize: 16, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    color: "#2A2A2A", // Màu đen đậm
   },
   quantitySelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF", // Thêm màu nền trắng
-    borderWidth: 1,
-    borderColor: "#E57905",
-    borderRadius: 10, // Bo góc mềm mại hơn
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    shadowColor: "#000", // Thêm đổ bóng
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    backgroundColor: "#FFF", // Màu nền trắng
+    borderWidth: 1, // Độ dày viền
+    borderColor: "#E57905", // Màu viền cam
+    borderRadius: 10, // Bo góc mềm mại
+    paddingHorizontal: 8, // Khoảng cách ngang
+    paddingVertical: 4, // Khoảng cách dọc
+    shadowColor: "#000", // Màu bóng
+    shadowOpacity: 0.1, // Độ mờ bóng
+    shadowRadius: 4, // Bán kính bóng
+    elevation: 2, // Độ nổi (Android)
   },
   quantityButton: {
-    padding: 8,
+    padding: 8, // Khoảng cách bên trong
   },
   quantityText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2A2A2A",
-    marginHorizontal: 16,
+    fontSize: 16, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
+    color: "#2A2A2A", // Màu đen đậm
+    marginHorizontal: 16, // Khoảng cách ngang
   },
   buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginVertical: 20,
-    marginBottom: 30, // Thêm khoảng cách dưới để không sát đáy
+    flexDirection: "row", // Sắp xếp theo hàng ngang
+    justifyContent: "space-between", // Căn đều hai bên
+    paddingHorizontal: 16, // Khoảng cách ngang
+    marginVertical: 20, // Khoảng cách trên dưới
+    marginBottom: 30, // Khoảng cách dưới để không sát đáy
   },
   addToCartButton: {
-    flex: 1,
-    backgroundColor: "#F5A623", // Màu cam nhạt hơn để phân biệt với "Mua ngay"
-    borderRadius: 10, // Bo góc mềm mại hơn
-    paddingVertical: 14, // Tăng padding dọc để nút cao hơn
-    alignItems: "center",
-    marginRight: 10,
-    shadowColor: "#000", // Thêm đổ bóng
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    flex: 1, // Chiếm không gian linh hoạt
+    backgroundColor: "#F5A623", // Màu cam nhạt để phân biệt
+    borderRadius: 10, // Bo góc mềm mại
+    paddingVertical: 14, // Khoảng cách dọc để nút cao hơn
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginRight: 10, // Khoảng cách phải
+    shadowColor: "#000", // Màu bóng
+    shadowOpacity: 0.2, // Độ mờ bóng
+    shadowRadius: 4, // Bán kính bóng
+    elevation: 3, // Độ nổi (Android)
   },
   addToCartText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: "#FFF", // Màu chữ trắng
+    fontSize: 16, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
   },
   buyNowButton: {
-    flex: 1,
-    backgroundColor: "#E57905", // Giữ màu cam đậm cho nút "Mua ngay"
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginLeft: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    flex: 1, // Chiếm không gian linh hoạt
+    backgroundColor: "#E57905", // Màu cam đậm cho nút "Mua ngay"
+    borderRadius: 10, // Bo góc mềm mại
+    paddingVertical: 14, // Khoảng cách dọc
+    alignItems: "center", // Căn giữa theo chiều dọc
+    marginLeft: 10, // Khoảng cách trái
+    shadowColor: "#000", // Màu bóng
+    shadowOpacity: 0.2, // Độ mờ bóng
+    shadowRadius: 4, // Bán kính bóng
+    elevation: 3, // Độ nổi (Android)
   },
   buyNowText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: "#FFF", // Màu chữ trắng
+    fontSize: 16, // Kích thước chữ
+    fontWeight: "bold", // Độ đậm chữ
   },
   loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1, // Chiếm toàn bộ không gian
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
   },
   errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+    flex: 1, // Chiếm toàn bộ không gian
+    justifyContent: "center", // Căn giữa theo chiều ngang
+    alignItems: "center", // Căn giữa theo chiều dọc
+    padding: 20, // Khoảng cách bên trong
   },
   errorText: {
-    color: "red",
-    fontSize: 16,
-    textAlign: "center",
+    color: "red", // Màu chữ đỏ
+    fontSize: 16, // Kích thước chữ
+    textAlign: "center", // Căn giữa văn bản
   },
 });
 

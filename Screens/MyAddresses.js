@@ -9,7 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import styles from "../styles/MyAddresses";
 
-// Dữ liệu giả lập cho danh sách địa chỉ
+// B1: Dữ liệu giả lập danh sách địa chỉ
 const addressesData = [
   {
     id: "1",
@@ -80,8 +80,9 @@ const addressesData = [
   },
 ];
 
+// B2: Component MyAddresses hiển thị danh sách địa chỉ
 const MyAddresses = ({ navigation }) => {
-  // Component render cho từng địa chỉ
+  // B3: Hàm render từng mục địa chỉ
   const renderAddressItem = ({ item }) => (
     <View style={styles.addressItem}>
       <View style={styles.addressHeader}>
@@ -108,9 +109,10 @@ const MyAddresses = ({ navigation }) => {
     </View>
   );
 
+  // B4: Giao diện chính
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {/* B5: Header với nút quay lại */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -124,7 +126,7 @@ const MyAddresses = ({ navigation }) => {
         <View style={styles.placeholderRight} />
       </View>
 
-      {/* Danh sách địa chỉ */}
+      {/* B6: Danh sách địa chỉ với FlatList */}
       <FlatList
         data={addressesData}
         renderItem={renderAddressItem}
@@ -147,4 +149,5 @@ const MyAddresses = ({ navigation }) => {
   );
 };
 
+// B7: Xuất component
 export default MyAddresses;

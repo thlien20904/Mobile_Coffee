@@ -10,15 +10,20 @@ import { Ionicons, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NGROK_BASE_URL } from "@env";
 
+// B1: Component Forget2 cho phép cập nhật mật khẩu mới
 const Forget2 = ({ route }) => {
+  // B2: State quản lý mật khẩu, xác nhận mật khẩu, và hiển thị mật khẩu
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  // B3: State quản lý lỗi cho từng trường
   const [errors, setErrors] = useState({});
+  // B4: Hook useNavigation để điều hướng
   const navigation = useNavigation();
+  // B5: Lấy email từ route.params
   const { email } = route.params || {};
 
-  // Hàm kiểm tra giá trị nhập liệu và cập nhật lỗi
+  // B6: Hàm kiểm tra giá trị nhập liệu
   const validateField = (field, value) => {
     let newErrors = { ...errors };
 
@@ -49,17 +54,18 @@ const Forget2 = ({ route }) => {
     setErrors(newErrors);
   };
 
-  // Xử lý cập nhật mật khẩu
+  // B7: Hàm xử lý cập nhật mật khẩu
   const handleUpdatePassword = async () => {
-    // Kiểm tra tất cả các trường trước khi gửi yêu cầu
+    // B8: Kiểm tra tất cả trường trước khi gửi
     validateField("password", password);
     validateField("confirmPassword", confirmPassword);
 
     if (Object.keys(errors).length > 0) {
-      return;
+      return; // Không gửi nếu có lỗi
     }
 
     try {
+      // B9: Gửi yêu cầu POST đến API reset-password
       const response = await fetch(`${NGROK_BASE_URL}/api/reset-password`, {
         method: "POST",
         headers: {
@@ -70,11 +76,12 @@ const Forget2 = ({ route }) => {
 
       const data = await response.json();
 
+      // B10: Xử lý phản hồi từ server
       if (response.ok) {
         alert("Cập nhật mật khẩu thành công.");
         navigation.reset({
           index: 0,
-          routes: [{ name: "Login" }],
+          routes: [{ name: "Login" }], // Chuyển về màn hình Login
         });
       } else {
         setErrors((prev) => ({
@@ -90,8 +97,10 @@ const Forget2 = ({ route }) => {
     }
   };
 
+  // B11: Giao diện chính
   return (
     <View style={styles.container}>
+      {/* B12: Nút quay lại */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -99,11 +108,13 @@ const Forget2 = ({ route }) => {
         <Ionicons name="arrow-back" size={40} color="#333" />
       </TouchableOpacity>
 
+      {/* B13: Tiêu đề và hướng dẫn */}
       <Text style={styles.title}>Cập Nhật Mật Khẩu</Text>
       <Text style={styles.subtitle}>
         Nhập mật khẩu mới cho tài khoản của bạn.
       </Text>
 
+      {/* B14: Ô nhập mật khẩu mới */}
       <View style={styles.inputContainer}>
         <Ionicons
           name="lock-closed"
@@ -134,6 +145,7 @@ const Forget2 = ({ route }) => {
         <Text style={styles.errorText}>{errors.password}</Text>
       )}
 
+      {/* B15: Ô nhập xác nhận mật khẩu */}
       <View style={styles.inputContainer}>
         <Ionicons
           name="lock-closed"
@@ -164,8 +176,10 @@ const Forget2 = ({ route }) => {
         <Text style={styles.errorText}>{errors.confirmPassword}</Text>
       )}
 
+      {/* B16: Hiển thị lỗi server nếu có */}
       {errors.server && <Text style={styles.errorText}>{errors.server}</Text>}
 
+      {/* B17: Nút cập nhật mật khẩu */}
       <TouchableOpacity
         style={styles.updateButton}
         onPress={handleUpdatePassword}
@@ -176,6 +190,7 @@ const Forget2 = ({ route }) => {
   );
 };
 
+// B18: Định nghĩa styles cho giao diện
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -236,4 +251,5 @@ const styles = StyleSheet.create({
   },
 });
 
+// B19: Xuất component
 export default Forget2;
